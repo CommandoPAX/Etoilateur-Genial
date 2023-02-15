@@ -9,11 +9,11 @@ from math import*
 #Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps
 #F Castillo et T Bruant 2023
 
-class Etoile (object):
+class Etoile (object): #Définition de la classe Etoile
     def __init__(self, modele, source):
         
         if modele not in ("Genec","Starevol") :
-            print ValueError ("Le modele doit etre Genec ou Starevol")
+            print ValueError ("Le modele doit etre Genec ou Starevol") : #a remplacer par raise pour python 3
         
         self.modele = modele
         self.source = source
@@ -29,7 +29,7 @@ class Etoile (object):
         elts = ["n","X","2H","3He","Y","6Li","7Li","7Be","9Be","10B","11B",
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","19F","20Ne",
             "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","26Alm","26Alg","27Al","28Si","29Si",
-            "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"]
+            "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"] #liste de tout les éléments considérés
 
 
         self.abondances_surf={}
@@ -92,7 +92,7 @@ class Etoile (object):
                     
                     
 
-            for root,dirs,files in os.walk(source):
+            for root,dirs,files in os.walk(source): #ouvre tout les fichiers utiles
                 for file in files :
                     if not ".gz" in file :
                         if "c1" in file :
@@ -193,7 +193,7 @@ class Etoile (object):
             self.Y_ini = self.abondances_surf["Y"][0]
         except: pass
 
-    def HR (self,couleur="black",legende="graphique",masse = True,Zini = True):
+    def HR (self,couleur="black",legende="graphique",masse = True,Zini = True): #Définit la fonction qui trace les diagrammes HR
 
 
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
@@ -202,7 +202,7 @@ class Etoile (object):
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
 
-    def Evolution (self, parametre ,couleur="black",legende="graphique"):
+    def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
         plt.plot(self.t, parametre,color=couleur,label=legende)
 
 if __name__ == "__main__" :
