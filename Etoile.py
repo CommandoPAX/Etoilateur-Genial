@@ -3,7 +3,6 @@
 try : 
     from tkinter import*
 except:
-    from __future__ import unicode_literals
     from Tkinter import*
 import os
 import matplotlib.pyplot as plt
@@ -20,7 +19,7 @@ class Etoile (object): #Définition de la classe Etoile
     def __init__(self, modele, source):
         
         if modele not in ("Genec","Starevol") :
-            raise ValueError ("Le modele doit etre Genec ou Starevol") :
+            raise ValueError ("Le modele doit etre Genec ou Starevol")
         
         self.modele = modele
         self.source = source
@@ -193,12 +192,27 @@ class Etoile (object): #Définition de la classe Etoile
 
             for k in fichiers : k.close()
 
-        try :
-            self.M_ini = self.M[0]
-            self.Z_ini = self.Z_surf[0]
-            self.X_ini = self.abondances_surf["X"][0]
-            self.Y_ini = self.abondances_surf["Y"][0]
-        except: pass
+        # Convertit les listes en np.array
+
+        self.M_ini = self.M[0]
+        self.Z_ini = self.Z_surf[0]
+        self.X_ini = self.abondances_surf["X"][0]
+        self.Y_ini = self.abondances_surf["Y"][0]
+
+        self.M = np.array(self.M)
+        self.R = np.array(self.R)
+        self.L = np.array(self.L)
+        self.Z_surf = np.array(self.Z_surf)
+        self.Z_coeur = np.array(self.Z_coeur)
+
+        for i in self.abondances_surf :
+            self.abondances_surf[i]=np.array(self.abondances_surf[i])
+            self.abondances_coeur[i]=np.array(self.abondances_coeur[i])
+
+        self.M_ini = self.M[0]
+        self.Z_ini = self.Z_surf[0]
+        self.X_ini = self.abondances_surf["X"][0]
+        self.Y_ini = self.abondances_surf["Y"][0]
 
     def HR (self,couleur="black",legende="graphique",masse = True,Zini = True): #Définit la fonction qui trace les diagrammes HR
 
@@ -212,81 +226,40 @@ class Etoile (object): #Définition de la classe Etoile
     def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
         plt.plot(self.t, parametre,color=couleur,label=legende)
         
-    """Il y a une manière bien plus opti de faire cette fonction à laquelle je viens de penser, je la modifierai pendant les vacances. Néanmoins elle marche en l'état."""
-    def Para (self, age, Temps = True, Lum = True, Ray = True, Tempe = True, Xcen = True, Ycen = True, Zcen = True, Xsurf = True, Ysurf = True, Zsurf = True): #énormément d'arguments malheureusement
-        age = log(float(age), 10) #calcul de l'age sont fait à partir d'un logarithme, potentiels imprécisions
-        varage = age - self.t[0]
-        varage_pre = varage #evite un crash si le programme stop à l'itération 0
-        i = 1
-        while varage > 0 : #boucle s'arretant dès que l'on dépasse l'age demandé, donne une valeur inf (varage_pre) et sup (varage) de l'age demandé
-            varage_pre = varage
-            varage = age - self.t[i]
-            i += 1
-        if abs(varage) < abs(varage_pre) : #renvoie les valeurs de varage, aka indice i - 1 pour toutes les données demandées si varage est plus proche de l'age
-            if Temps == True :
-                Fabien = 10**(selft.t[i-1]) #convertit le temps en année
-                print("t = ", Fabien, "années")
-            if Lum == True :
-                print("L = ", self.L[i-1], "log L/Lo")
-            if Ray == True :
-                print("R = ", self.R[i-1], "R/Ro")
-            if Tempe == True :
-                print("T = ", self.T[i-1], "Log T/To")
-            if Xsurf == True :
-                print("X_surf = ", self.abondances_surf["X"][i-1])
-            if Ysurf == True :
-                print("Y_surf = ", self.abondances_surf["Y"][i-1])
-            if Zsurf == True :
-                print("Z_surf = ", self.Z_surf[i-1], "/n")
-            if Xcen == True :
-                print("X_cen = ", self.abondances_coeur["X"][i-1])
-            if Ycen == True :
-                print("Y_cen = ", self.abondances_coeur["Y"][i-1])
-            if Zcen == True :
-                print("Z_cen = ", self.Z_coeur[i-1])
-            
-        else :
-            if abs(varage_pre) < abs(varage) : #renvoie les valeurs de pre varage aka indice i-2 pour toutes les donnees demandées si varage_pre est plus proche de l'age demandé
-                if Temps == True :
-                    Fabien = 10**(self.t[i-2])
-                    print("t = ", Fabien, "années")
-                if Lum == True :
-                    print("L = ", self.L[i-2], "log L/Lo")
-                if Ray == True :
-                    print("R = ", self.R[i-2], "R/Ro")
-                if Tempe == True :
-                    print("T = ", self.T[i-2], "Log T/To")
-                if Xsurf == True :
-                    print("X_surf = ", self.abondances_surf["X"][i-1])
-                if Ysurf == True :
-                    print("Y_surf = ", self.abondances_surf["Y"][i-12])
-                if Zsurf == True :
-                    print("Z_surf = ", self.Z_surf[i-2])
-                if Xcen == True :
-                    print("X_cen = ", self.abondances_coeur["X"][i-2])
-                if Ycen == True :
-                    print("Y_cen = ", self.abondances_coeur["Y"][i-2])
-                if Zcen == True :
-                    print("Z_cen = ", self.Z_coeur[i-2]) 
-            else : #si varage et varage_pre sont égaux, renvoie les valeurs de varage. Les deux choix étant équivalent
-                if Temps == True :
-                    Fabien = 10**(selft.t[i-1])
-                    print("t = ", Fabien, "années")
-                if Lum == True :
-                    print("L = ", self.L[i-1], "Log L/Lo")
-                if Ray == True :
-                    print("R = ", self.R[i-1], "R/Ro")
-                if Tempe == True :
-                    print("T = ", self.T[i-1], "Log T/To")
-                if Xsurf == True :
-                    print("X_surf = ", self.abondances_surf["X"][i-1])
-                if Ysurf == True :
-                    print("Y_surf = ", self.abondances_surf["Y"][i-1])
-                if Zsurf == True :
-                    print("Z_surf = ", self.Z_surf[i-1])
-                if Xcen == True :
-                    print("X_cen = ", self.abondances_coeur["X"][i-1])
-                if Ycen == True :
-                    print("Y_cen = ", self.abondances_coeur["Y"][i-1])
-                if Zcen == True :
-                    print("Z_cen = ", self.Z_coeur[i-1])
+    def Para (self, age, parametres, err = 1e8):
+
+        i = 0
+
+        for t in self.t :
+            if abs(10**t-age) < err: break
+            i +=1
+
+        valeurs = []
+
+        for p in parametres :
+            if i == len(p) :
+                raise ValueError ("Aucune valeur de l'âge ne correspond")
+                #Peut etre causé par une marge d'erreur trop petite, ou l'étoile est deja morte à cet age
+
+            valeurs.append(p[i])
+
+        return valeurs
+
+if __name__ == "__main__" :
+
+    axes = plt.gca()
+
+    A_Starevol = Etoile(modele="Starevol",source="./A/")
+    A_Genec = Etoile(modele="Genec",source="A.wg")
+    B_Genec = Etoile(modele="Genec",source="B.wg")
+
+    T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = [A_Genec.T, A_Genec.L, A_Genec.abondances_coeur["17O"]])
+    print("Parametres de A Genec à 4.57 Mds d'années : \nT = "+str(10**T)+" To\nL = "+str(10**L)+" Lo\nAbondances en Oxygene 17 : "+str(O17)) 
+    
+    B_Genec.Evolution(np.log(B_Genec.R),"blue","log(R) Etoile B Genec")
+    B_Genec.Evolution(1000*B_Genec.Z_coeur-13,"red","1000*Z_coeur - 13 Etoile B Genec")
+
+
+    axes.legend()
+    
+    plt.show()
