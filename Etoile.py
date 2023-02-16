@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import*
 
-#Programme qui parcourt les fichiers générés par Genec et Starevol
-#Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps
-#F Castillo et T Bruant 2023
+"""Programme qui parcourt les fichiers générés par Genec et Starevol
+Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
+F Castillo et T Bruant 2023"""
 
 class Etoile (object): #Définition de la classe Etoile
     def __init__(self, modele, source):
@@ -204,23 +204,82 @@ class Etoile (object): #Définition de la classe Etoile
 
     def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
         plt.plot(self.t, parametre,color=couleur,label=legende)
-
-if __name__ == "__main__" :
-
-    axes = plt.gca()
-
-    A_Starevol = Etoile(modele="Starevol",source="./A/")
-    A_Starevol.Evolution(A_Starevol.Z_coeur,"green","Etoile A Starevol")
-
-    A_Genec = Etoile(modele="Genec",source="A.wg")
-    A_Genec.Evolution(A_Genec.Z_coeur,"red","Etoile A Genec")
-
-    B_Genec = Etoile(modele="Genec",source="B.wg")
-    B_Genec.Evolution(B_Genec.Z_coeur,"blue","Etoile B Genec")
-
-    axes.set_xlabel("log t")
-    axes.set_ylabel("Z")
-
-    axes.legend()
-    
-    plt.show()
+        
+    """Il y a une manière bien plus opti de faire cette fonction à laquelle je viens de penser, je la modifierai pendant les vacances. Néanmoins elle marche en l'état."""
+    def Para (self, age, Temps = True, Lum = True, Ray = True, Tempe = True, Xcen = True, Ycen = True, Zcen = True, Xsurf = True, Ysurf = True, Zsurf = True): #énormément d'arguments malheureusement
+        age = log(float(age), 10) #calcul de l'age sont fait à partir d'un logarithme, potentiels imprécisions
+        varage = age - self.t[0]
+        varage_pre = varage #evite un crash si le programme stop à l'itération 0
+        i = 1
+        while varage > 0 : #boucle s'arretant dès que l'on dépasse l'age demandé, donne une valeur inf (varage_pre) et sup (varage) de l'age demandé
+            varage_pre = varage
+            varage = age - self.t[i]
+            i += 1
+        if abs(varage) < abs(varage_pre) : #renvoie les valeurs de varage, aka indice i - 1 pour toutes les données demandées si varage est plus proche de l'age
+            if Temps == True :
+                Fabien = 10**(selft.t[i-1]) #convertit le temps en année
+                print("t = ", Fabien, "années")
+            if Lum == True :
+                print("L = ", self.L[i-1], "log L/Lo")
+            if Ray == True :
+                print("R = ", self.R[i-1], "R/Ro")
+            if Tempe == True :
+                print("T = ", self.T[i-1], "Log T/To")
+            if Xsurf == True :
+                print("X_surf = ", self.abondances_surf["X"][i-1])
+            if Ysurf == True :
+                print("Y_surf = ", self.abondances_surf["Y"][i-1])
+            if Zsurf == True :
+                print("Z_surf = ", self.Z_surf[i-1], "/n")
+            if Xcen == True :
+                print("X_cen = ", self.abondances_coeur["X"][i-1])
+            if Ycen == True :
+                print("Y_cen = ", self.abondances_coeur["Y"][i-1])
+            if Zcen == True :
+                print("Z_cen = ", self.Z_coeur[i-1])
+            
+        else :
+            if abs(varage_pre) < abs(varage) : #renvoie les valeurs de pre varage aka indice i-2 pour toutes les donnees demandées si varage_pre est plus proche de l'age demandé
+                if Temps == True :
+                    Fabien = 10**(self.t[i-2])
+                    print("t = ", Fabien, "années")
+                if Lum == True :
+                    print("L = ", self.L[i-2], "log L/Lo")
+                if Ray == True :
+                    print("R = ", self.R[i-2], "R/Ro")
+                if Tempe == True :
+                    print("T = ", self.T[i-2], "Log T/To")
+                if Xsurf == True :
+                    print("X_surf = ", self.abondances_surf["X"][i-1])
+                if Ysurf == True :
+                    print("Y_surf = ", self.abondances_surf["Y"][i-12])
+                if Zsurf == True :
+                    print("Z_surf = ", self.Z_surf[i-2])
+                if Xcen == True :
+                    print("X_cen = ", self.abondances_coeur["X"][i-2])
+                if Ycen == True :
+                    print("Y_cen = ", self.abondances_coeur["Y"][i-2])
+                if Zcen == True :
+                    print("Z_cen = ", self.Z_coeur[i-2]) 
+            else : #si varage et varage_pre sont égaux, renvoie les valeurs de varage. Les deux choix étant équivalent
+                if Temps == True :
+                    Fabien = 10**(selft.t[i-1])
+                    print("t = ", Fabien, "années")
+                if Lum == True :
+                    print("L = ", self.L[i-1], "Log L/Lo")
+                if Ray == True :
+                    print("R = ", self.R[i-1], "R/Ro")
+                if Tempe == True :
+                    print("T = ", self.T[i-1], "Log T/To")
+                if Xsurf == True :
+                    print("X_surf = ", self.abondances_surf["X"][i-1])
+                if Ysurf == True :
+                    print("Y_surf = ", self.abondances_surf["Y"][i-1])
+                if Zsurf == True :
+                    print("Z_surf = ", self.Z_surf[i-1])
+                if Xcen == True :
+                    print("X_cen = ", self.abondances_coeur["X"][i-1])
+                if Ycen == True :
+                    print("Y_cen = ", self.abondances_coeur["Y"][i-1])
+                if Zcen == True :
+                    print("Z_cen = ", self.Z_coeur[i-1])
