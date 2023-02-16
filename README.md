@@ -11,6 +11,11 @@ J'ai changé la fonction Para pour qu'elle fasse environ 40 lignes de moins : el
 
 J'ai aussi converti les listes en np.array, ce qui est plus pratique pour les graphes
 
+MAJ de ce soir :
+Correction d'un bug mineur dans starevol
+Suppression de variables inutiles
+Rajout d'un parametre "log" dans la fonction Evolution qui permet de tracer l'évolution du log d'un parametre
+
 TBA : 
 - nouveau modèle d'évolution stellaire
 - interface graphique ?
