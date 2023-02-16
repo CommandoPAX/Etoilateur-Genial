@@ -206,17 +206,15 @@ class Etoile (object):
 
     def HR (self,couleur="black",legende="graphique",masse = True,Zini = True): #Définit la fonction qui trace les diagrammes HR
 
-
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
         if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
 
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
-
     def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
         plt.plot(self.t, parametre,color=couleur,label=legende)
         
-    def Para (self, age, parametres, err = 1e8):
+    def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste comme argument
 
         i = 0
 
@@ -228,8 +226,7 @@ class Etoile (object):
 
         for p in parametres :
             if i == len(p) :
-                raise ValueError ("Aucune valeur de l'âge ne correspond")
-                #Peut etre causé par une marge d'erreur trop petite, ou l'étoile est deja morte à cet age
+                raise ValueError ("Aucune valeur de l'âge ne correspond") #Peut etre causé par une marge d'erreur trop petite, ou l'étoile est deja morte à cet age
 
             valeurs.append(p[i])
 
