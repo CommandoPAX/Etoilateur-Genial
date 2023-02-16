@@ -9,14 +9,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import*
 
-   
-
 """Programme qui parcourt les fichiers générés par Genec et Starevol
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
 F Castillo et T Bruant 2023"""
 
-class Etoile (object): #Définition de la classe Etoile
+class Etoile (object): 
     def __init__(self, modele, source):
+
+        # Définition de la classe Etoile
+        # source est un fichier pour Genec, et le repertoire qui contient tous les fichiers pour Starevol (il faut les dezipper)
+        # Pour accéder à l'abondance au coeur du carbone 12 (par exemple) > Etoile.abondances_coeur["12C"]
         
         if modele not in ("Genec","Starevol") :
             raise ValueError ("Le modele doit etre Genec ou Starevol")
@@ -36,22 +38,21 @@ class Etoile (object): #Définition de la classe Etoile
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","19F","20Ne",
             "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","26Alm","26Alg","27Al","28Si","29Si",
             "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"] #liste de tout les éléments considérés
-
-
+        
         self.abondances_surf={}
         self.abondances_coeur={}
         for i in elts :
             self.abondances_surf[i]=[]
             self.abondances_coeur[i] = []
-
-
+            
+        indices_surf = {}
+        indices_coeur = {}
+        
         if self.modele == "Genec" :
             fichier = open(self.source,'r')
 
             elts_surf = ["X","Y","3He","12C","13C","14N","16O","17O","18O","20Ne","22Ne"]
             elts_coeur = ["X","Y","3He","12C","13C","14N","16O","17O","18O","20Ne","22Ne","7Be","8Be"]
-            indices_surf = {}
-            indices_coeur = {}
             
             for i in range(len(elts_surf)):
                 indices_surf[6+i]=elts_surf[i]
@@ -127,15 +128,12 @@ class Etoile (object): #Définition de la classe Etoile
                             fichier_hr = open(os.path.join(root,file),"r")
                             fichiers[0] = fichier_hr
                             
-
             for k in fichiers :
                 if k == 0:
                     raise NameError ("Des fichiers n'ont pas été trouvés")
                 for j in range(6):
                     k.readline()
 
-            indices_surf = {}
-            indices_coeur = {}
             delta =16
 
             for i in range(len(elts)):
@@ -175,6 +173,8 @@ class Etoile (object): #Définition de la classe Etoile
                     X_coeur = float(ligne[71])
                     Y_coeur = float(ligne[74])
 
+                    if 1-X_surf-Y_surf > 0.2 : print(ligne)
+
                     for k in range(len(ligne)):
                         if k in indices_surf :
                             self.abondances_surf[indices_surf[k]].append(float(ligne[k]))
@@ -182,7 +182,6 @@ class Etoile (object): #Définition de la classe Etoile
                         if k in indices_coeur:
                             self.abondances_coeur[indices_coeur[k]].append(float(ligne[k]))
                         
-
                     self.Z_surf.append(1-X_surf-Y_surf)
                     self.Z_coeur.append(1-X_coeur-Y_coeur)
 
