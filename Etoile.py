@@ -139,12 +139,7 @@ class Etoile (object):
             for i in range(len(elts)):
                 if i % 11 == 0 : delta +=2
                 indices_surf[i+delta]=elts[i]
-
-            delta =68
-            for i in range(len(elts)):
-
-                if i % 11 == 0 : delta +=2
-                indices_coeur[i+delta]=elts[i]
+                indices_coeur[i+delta+52]=elts[i]
 
             while 1 :
 
