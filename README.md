@@ -5,9 +5,9 @@ Modèles supportés : STAREVOL, GENEC
 
 MAJ de ce matin :
 
-j'ai changé la fonction Para pour qu'elle fasse environ 40 lignes de moins
-Elle prend en argument la liste des parametres qu'il faut afficher et renvoie la liste des valeurs correspondantes, et affiche un message d'erreur si la valeur de l'age ne correspond pas
-J'ai mis un exemple à la fin pour aficher T, L et l'abondance en oxygene à l'age du soleil
+J'ai rajouté la variable Etoile.args qui permer de passer les arguments aux fonctions Evolution et Para en donnant un str. Exemple : Etoile.args["T"] > Etoile.T
+
+J'ai changé la fonction Para pour qu'elle fasse environ 40 lignes de moins : elle prend en argument la liste des parametres (dans Etoile.args)  qu'il faut afficher et renvoie la liste des valeurs correspondantes. Exemple : Etoile.Para (age, ["T","L","O17_surf"])
 
 J'ai aussi converti les listes en np.array, ce qui est plus pratique pour les graphes
 
