@@ -189,11 +189,6 @@ class Etoile (object):
 
         # Convertit les listes en np.array
 
-        self.M_ini = self.M[0]
-        self.Z_ini = self.Z_surf[0]
-        self.X_ini = self.abondances_surf["X"][0]
-        self.Y_ini = self.abondances_surf["Y"][0]
-
         self.M = np.array(self.M)
         self.R = np.array(self.R)
         self.L = np.array(self.L)
