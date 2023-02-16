@@ -96,8 +96,6 @@ class Etoile (object): #Définition de la classe Etoile
                 
             fichiers = [0,0,0,0,0,0,0,0,0]
                     
-                    
-
             for root,dirs,files in os.walk(source): #ouvre tout les fichiers utiles
                 for file in files :
                     if not ".gz" in file :
@@ -177,8 +175,6 @@ class Etoile (object): #Définition de la classe Etoile
                     X_coeur = float(ligne[71])
                     Y_coeur = float(ligne[74])
 
-                    if 1-X_surf-Y_surf > 0.2 : print(ligne)
-
                     for k in range(len(ligne)):
                         if k in indices_surf :
                             self.abondances_surf[indices_surf[k]].append(float(ligne[k]))
@@ -255,10 +251,14 @@ if __name__ == "__main__" :
 
     T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = [A_Genec.T, A_Genec.L, A_Genec.abondances_coeur["17O"]])
     print("Parametres de A Genec à 4.57 Mds d'années : \nT = "+str(10**T)+" To\nL = "+str(10**L)+" Lo\nAbondances en Oxygene 17 : "+str(O17)) 
-    
-    B_Genec.Evolution(np.log(B_Genec.R),"blue","log(R) Etoile B Genec")
-    B_Genec.Evolution(1000*B_Genec.Z_coeur-13,"red","1000*Z_coeur - 13 Etoile B Genec")
 
+    plt.plot(np.log(A_Genec.R), A_Genec.Z_coeur, label = "A Genec", color = "red")
+    plt.plot(np.log(B_Genec.R), B_Genec.Z_coeur, label = "B Genec", color="blue")
+
+    plt.title("Evolution de la metallicite de A Genec et B Genec\nen fonction de leur rayon")
+
+    axes.set_xlabel("log (R)")
+    axes.set_ylabel("Z")
 
     axes.legend()
     
