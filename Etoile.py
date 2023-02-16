@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 
+try : 
+    from tkinter import*
+except:
+    from __future__ import unicode_literals
+    from Tkinter import*
 import os
 import matplotlib.pyplot as plt
 import numpy as np
 from math import*
+
+   
 
 """Programme qui parcourt les fichiers générés par Genec et Starevol
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
@@ -13,7 +20,7 @@ class Etoile (object): #Définition de la classe Etoile
     def __init__(self, modele, source):
         
         if modele not in ("Genec","Starevol") :
-            print ValueError ("Le modele doit etre Genec ou Starevol") : #a remplacer par raise pour python 3
+            raise ValueError ("Le modele doit etre Genec ou Starevol") :
         
         self.modele = modele
         self.source = source
