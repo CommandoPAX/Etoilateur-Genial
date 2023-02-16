@@ -199,6 +199,17 @@ class Etoile (object):
         self.X_ini = self.abondances_surf["X"][0]
         self.Y_ini = self.abondances_surf["Y"][0]
 
+        self.args = {"T" : self.T,
+                     "L" : self.L,
+                     "M" : self.M,
+                     "t" : self.t,
+                     "R" : self.R,
+                     "Z_surf" : self.Z_surf,
+                     "Z_coeur" : self.Z_coeur}
+        for e in elts :
+            self.args[e+"_surf"] = self.abondances_surf[e]
+            self.args[e+"_coeur"] = self.abondances_coeur[e]
+
     def HR (self,couleur="black",legende="graphique",masse = True,Zini = True): #Définit la fonction qui trace les diagrammes HR
 
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
@@ -207,9 +218,11 @@ class Etoile (object):
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
     def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
+
+        parametre = self.args[parametre]
         plt.plot(self.t, parametre,color=couleur,label=legende)
         
-    def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste comme argument
+    def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
 
         i = 0
 
@@ -220,6 +233,7 @@ class Etoile (object):
         valeurs = []
 
         for p in parametres :
+            p = self.args[p]
             if i == len(p) :
                 raise ValueError ("Aucune valeur de l'âge ne correspond") #Peut etre causé par une marge d'erreur trop petite, ou l'étoile est deja morte à cet age
 
@@ -235,7 +249,7 @@ if __name__ == "__main__" :
     A_Genec = Etoile(modele="Genec",source="A.wg")
     B_Genec = Etoile(modele="Genec",source="B.wg")
 
-    T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = [A_Genec.T, A_Genec.L, A_Genec.abondances_coeur["17O"]])
+    T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = ["T","L","17O_coeur"])
     print("Parametres de A Genec à 4.57 Mds d'années : \nT = "+str(10**T)+" To\nL = "+str(10**L)+" Lo\nAbondances en Oxygene 17 : "+str(O17)) 
 
     plt.plot(np.log(A_Genec.R), A_Genec.Z_coeur, label = "A Genec", color = "red")
