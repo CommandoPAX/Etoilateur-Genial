@@ -145,8 +145,6 @@ class Etoile (object):
 
                 ligne = ""
                 for k in fichiers :
-                    l = k.readline()
-
                     ligne += k.readline()
     
                 for i in range(10):
