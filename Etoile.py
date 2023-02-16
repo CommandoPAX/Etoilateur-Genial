@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-try : 
-    from tkinter import*
-except:
-    from Tkinter import*
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -100,33 +96,15 @@ class Etoile (object):
             for root,dirs,files in os.walk(source): #ouvre tout les fichiers utiles
                 for file in files :
                     if not ".gz" in file :
-                        if "c1" in file :
-                            fichier_c1 = open(os.path.join(root,file),"r")
-                            fichiers[5]=fichier_c1
-                        if "c2" in file :
-                            fichier_c2 = open(os.path.join(root,file),"r")
-                            fichiers[6]=fichier_c2
-                        if "c3" in file :
-                            fichier_c3 = open(os.path.join(root,file),"r")
-                            fichiers[7] = fichier_c3
-                        if "c4" in file :
-                            fichier_c4 = open(os.path.join(root,file),"r")
-                            fichiers[8] = fichier_c4
-                        if "s1" in file :
-                            fichier_s1 = open(os.path.join(root,file),"r")
-                            fichiers[1] = fichier_s1
-                        if "s2" in file :
-                            fichier_s2 = open(os.path.join(root,file),"r")
-                            fichiers[2] = fichier_s2
-                        if "s3" in file :
-                            fichier_s3 = open(os.path.join(root,file),"r")
-                            fichiers [3] = fichier_s3
-                        if "s4" in file :
-                            fichier_s4 = open(os.path.join(root,file),"r")
-                            fichiers[4] = fichier_s4
-                        if file == "mevol.hr":
-                            fichier_hr = open(os.path.join(root,file),"r")
-                            fichiers[0] = fichier_hr
+                        if "c1" in file : fichiers[5] = open(os.path.join(root,file),"r")
+                        if "c2" in file : fichiers[6] = open(os.path.join(root,file),"r")
+                        if "c3" in file : fichiers[7] = open(os.path.join(root,file),"r")
+                        if "c4" in file : fichiers[8] = open(os.path.join(root,file),"r")
+                        if "s1" in file : fichiers[1] = open(os.path.join(root,file),"r")
+                        if "s2" in file : fichiers[2] = open(os.path.join(root,file),"r")
+                        if "s3" in file : fichiers [3] = open(os.path.join(root,file),"r")
+                        if "s4" in file : fichiers[4] = open(os.path.join(root,file),"r")
+                        if file == "mevol.hr": fichiers[0] = open(os.path.join(root,file),"r")
                             
             for k in fichiers :
                 if k == 0:
@@ -165,8 +143,6 @@ class Etoile (object):
                     Y_surf=float(ligne[22])
                     X_coeur = float(ligne[71])
                     Y_coeur = float(ligne[74])
-
-                    if 1-X_surf-Y_surf > 0.2 : print(ligne)
 
                     for k in range(len(ligne)):
                         if k in indices_surf :
@@ -215,9 +191,10 @@ class Etoile (object):
 
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
-    def Evolution (self, parametre ,couleur="black",legende="graphique"): #Définit la fonction qui trace les évolutions
+    def Evolution (self, parametre ,couleur="black",legende="graphique", log = False): #Définit la fonction qui trace les évolutions
 
         parametre = self.args[parametre]
+        if log : parametre = np.log(parametre)
         plt.plot(self.t, parametre,color=couleur,label=legende)
         
     def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
@@ -250,13 +227,12 @@ if __name__ == "__main__" :
     T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = ["T","L","17O_coeur"])
     print("Parametres de A Genec à 4.57 Mds d'années : \nT = "+str(10**T)+" To\nL = "+str(10**L)+" Lo\nAbondances en Oxygene 17 : "+str(O17)) 
 
-    plt.plot(np.log(A_Genec.R), A_Genec.Z_coeur, label = "A Genec", color = "red")
-    plt.plot(np.log(B_Genec.R), B_Genec.Z_coeur, label = "B Genec", color="blue")
+    A_Starevol.Evolution("R","green","Etoile A Starevol",log=True)
+    A_Genec.Evolution("R","red","Etoile A Genec",log = True)
+    B_Genec.Evolution("R","blue","Etoile B Genec", log = True)
 
-    plt.title("Evolution de la metallicite de A Genec et B Genec\nen fonction de leur rayon")
-
-    axes.set_xlabel("log (R)")
-    axes.set_ylabel("Z")
+    axes.set_xlabel("log (t)")
+    axes.set_ylabel("log R")
 
     axes.legend()
     
