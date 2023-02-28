@@ -9,6 +9,80 @@ from math import*
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
 F Castillo et T Bruant 2023"""
 
+class Structure (object):
+    def __init__ (self, modele, source):
+        global axes
+        
+        self.modele = modele
+        self.source = source
+        self.couche = []
+        self.M = []
+        self.P = []
+        self.T = []
+        self.R = []
+        self.X = []
+        self.Y = []
+        self.C12 = []
+        self.O16 = []
+        self.rho = []
+        self.nablad = []
+        self.nablarad=[]
+        self.vraiemasse = []
+
+
+        if self.modele == "Genec" :
+            fichier = open(self.source,"r")
+            for i in range(3) :
+                ligne = fichier.readline()
+
+            while 1 :
+                ligne = fichier.readline()
+
+                if ligne == "" : break
+
+                for i in range(3):  
+                    ligne = ligne.replace("  "," ")
+                ligne = ligne.split(" ")
+
+                self.couche.append(float(ligne[1]))
+                self.M.append(float(ligne[2]))
+                self.P.append(float(ligne[3]))
+                self.T.append(float(ligne[4]))
+                self.R.append(float(ligne[5]))
+                self.C12.append(float(ligne[9]))
+                self.O16.append(float(ligne[10]))
+                self.nablad.append(float(ligne[29]))
+                self.vraiemasse.append(ligne[50])
+                self.nablarad.append(float(ligne[14]))
+
+            self.couche=np.array(self.couche)        
+            self.P=np.array(self.P)        
+            self.T=np.array(self.T)        
+            self.R=np.array(self.R)
+            self.M=np.array(self.M)
+            self.C12 = np.array(self.C12)
+            self.O16 = np.array(self.O16)
+            self.nablad = np.array(self.nablad)
+
+            self.args = {"M" : self.M,
+                         "P" : self.P,
+                         "T" : self.T,
+                         "R" : self.R,
+                         "12C": self.C12,
+                         "16O" : self.O16,
+                         "nablad" : self.nablad,
+                         "vraiemasse" : self.vraiemasse,
+                         "nablarad" : self.nablarad
+                         }
+                         
+
+    def Evolution (self,parametre,legende,couleur="black",masse = True):
+        if masse : legende += " ; M = "+str(self.vraiemasse[0])+" Mo"
+        plt.plot(self.M,self.args[parametre], label=legende,color=couleur)
+
+        axes.set_xlabel("M/Mr")
+        axes.set_ylabel(parametre)
+
 class Etoile (object): 
     def __init__(self, modele, source):
 
@@ -33,7 +107,7 @@ class Etoile (object):
         elts = ["n","X","2H","3He","Y","6Li","7Li","7Be","9Be","10B","11B",
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","19F","20Ne",
             "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","26Alm","26Alg","27Al","28Si","29Si",
-            "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"] #liste de tout les éléments considérés
+            "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"] #liste de tous les éléments considérés
         
         self.abondances_surf={}
         self.abondances_coeur={}
@@ -191,11 +265,17 @@ class Etoile (object):
 
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
-    def Evolution (self, parametre ,couleur="black",legende="graphique", log = False): #Définit la fonction qui trace les évolutions
+    def Evolution (self, parametre,couleur="black",legende="graphique",  X="t" ,log = False,logx = False,masse = True,Zini = False): #Définit la fonction qui trace les évolutions, par défaut au cours du temps
 
         parametre = self.args[parametre]
+        X = self.args[X]
         if log : parametre = np.log(parametre)
-        plt.plot(self.t, parametre,color=couleur,label=legende)
+        if logx : X = np.log(X)
+
+        if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
+        if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
+        
+        plt.plot(X, parametre,color=couleur,label=legende)
         
     def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
 
@@ -220,19 +300,20 @@ if __name__ == "__main__" :
 
     axes = plt.gca()
 
-    A_Starevol = Etoile(modele="Starevol",source="./A/")
-    A_Genec = Etoile(modele="Genec",source="A.wg")
-    B_Genec = Etoile(modele="Genec",source="B.wg")
+    e1 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v1")
+    e2 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v2")
+    #A_Genec = Etoile(modele="Genec",source = "A.wg")
+    #A_Genec.HR()
 
-    T, L, O17 = A_Genec.Para(age = 4.57e9, parametres = ["T","L","17O_coeur"])
-    print("Parametres de A Genec à 4.57 Mds d'années : \nT = "+str(10**T)+" To\nL = "+str(10**L)+" Lo\nAbondances en Oxygene 17 : "+str(O17)) 
+    e3 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v1")
+    e4 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v2")
+    e5 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v1")
+    e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")
 
-    A_Starevol.Evolution("R","green","Etoile A Starevol",log=True)
-    A_Genec.Evolution("R","red","Etoile A Genec",log = True)
-    B_Genec.Evolution("R","blue","Etoile B Genec", log = True)
+    e1.Evolution("X", legende = "Etoile 1", couleur = "blue")
+    e3.Evolution("X", legende = "Etoile 2", couleur = "red")
+    e5.Evolution("X", legende = "Etoile 3", couleur = "green")
 
-    axes.set_xlabel("log (t)")
-    axes.set_ylabel("log R")
 
     axes.legend()
     
