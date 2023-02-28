@@ -76,12 +76,12 @@ class Structure (object):
                          }
                          
 
-    def Evolution (self,parametre,legende,couleur="black",masse = True):
+    def Evolution (self, Y, X = "R",legende = "legende",couleur="black",masse = True):
         if masse : legende += " ; M = "+str(self.vraiemasse[0])+" Mo"
-        plt.plot(self.M,self.args[parametre], label=legende,color=couleur)
+        plt.plot(self.args[X],self.args[Y], label=legende,color=couleur)
 
-        axes.set_xlabel("M/Mr")
-        axes.set_ylabel(parametre)
+        axes.set_xlabel(X)
+        axes.set_ylabel(Y)
 
 class Etoile (object): 
     def __init__(self, modele, source):
@@ -300,19 +300,14 @@ if __name__ == "__main__" :
 
     axes = plt.gca()
 
-    e1 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v1")
-    e2 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v2")
-    #A_Genec = Etoile(modele="Genec",source = "A.wg")
-    #A_Genec.HR()
-
+    e1 = Structure(modele = "Genec", source = "../DATA/Structure/GENEC/classique_m0.8.v1")
+    '''e2 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v2")
     e3 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v1")
     e4 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v2")
     e5 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v1")
-    e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")
+    e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")'''
 
-    e1.Evolution("X", legende = "Etoile 1", couleur = "blue")
-    e3.Evolution("X", legende = "Etoile 2", couleur = "red")
-    e5.Evolution("X", legende = "Etoile 3", couleur = "green")
+    e1.Evolution("nablarad", "nablad", legende = "Etoile 1", couleur = "blue")
 
 
     axes.legend()
