@@ -5,6 +5,7 @@ Modèles supportés : STAREVOL, GENEC
 
 
 MAJ de aujourd'hui : Conversion des Rayons en rayons solaires pour que Tigrou soit content
+Rajout de la fonction convection, qui trace des lignes
 
 TBA : 
 - nouveau modèle d'évolution stellaire
