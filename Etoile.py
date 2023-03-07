@@ -49,6 +49,7 @@ class Structure (object):
                 self.P.append(float(ligne[3]))
                 self.T.append(float(ligne[4]))
                 self.R.append(float(ligne[5]))
+                self.X.append(float(ligne[7]))
                 self.C12.append(float(ligne[9]))
                 self.O16.append(float(ligne[10]))
                 self.nablad.append(float(ligne[29]))
@@ -56,13 +57,15 @@ class Structure (object):
                 self.nablarad.append(float(ligne[14]))
 
             self.couche=np.array(self.couche)        
-            self.P=np.array(self.P)        
-            self.T=np.array(self.T)        
-            self.R=np.array(self.R)
+            self.P=10**np.array(self.P)        
+            self.T=10**np.array(self.T)        
+            self.R=10**np.array(self.R)/6.857e10
             self.M=np.array(self.M)
             self.C12 = np.array(self.C12)
             self.O16 = np.array(self.O16)
             self.nablad = np.array(self.nablad)
+            self.X = np.array(self.X)
+            self.Y = np.array(self.Y)
 
             self.args = {"M" : self.M,
                          "P" : self.P,
@@ -72,16 +75,19 @@ class Structure (object):
                          "16O" : self.O16,
                          "nablad" : self.nablad,
                          "vraiemasse" : self.vraiemasse,
-                         "nablarad" : self.nablarad
+                         "nablarad" : self.nablarad,
+                         "X" : self.X,
+                         "Y": self.Y
                          }
                          
 
-    def Evolution (self, Y, X = "R",legende = "legende",couleur="black",masse = True):
+    def Evolution (self,parametre,legende,X = "R", couleur="black",masse = True):
         if masse : legende += " ; M = "+str(self.vraiemasse[0])+" Mo"
-        plt.plot(self.args[X],self.args[Y], label=legende,color=couleur)
+
+        plt.plot(self.args[X],self.args[parametre], label=legende,color=couleur)
 
         axes.set_xlabel(X)
-        axes.set_ylabel(Y)
+        axes.set_ylabel(parametre)
 
 class Etoile (object): 
     def __init__(self, modele, source):
@@ -277,7 +283,7 @@ class Etoile (object):
         
         plt.plot(X, parametre,color=couleur,label=legende)
         
-    def Para (self, age, parametres, err = 1e8): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
+    def Para (self, age, parametres, err = 1e7): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
 
         i = 0
 
@@ -296,19 +302,42 @@ class Etoile (object):
 
         return valeurs
 
+    def Age (self, X, err = 0.01):
+
+        i = 0
+
+        for x in self.abondances_coeur["X"] :
+            if abs(x-X) < err: break
+            i +=1
+
+        return self.t[i]
+
+
 if __name__ == "__main__" :
 
     axes = plt.gca()
 
-    e1 = Structure(modele = "Genec", source = "../DATA/Structure/GENEC/classique_m0.8.v1")
-    '''e2 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v2")
+    e1 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v1")
+    e2 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m0.8.v2")
     e3 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v1")
     e4 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.0.v2")
     e5 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v1")
-    e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")'''
+    e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")
 
-    e1.Evolution("nablarad", "nablad", legende = "Etoile 1", couleur = "blue")
+    A_Genec = Etoile(modele="Genec",source = "A.wg")
+    B_Genec = Etoile(modele="Genec",source = "B.wg")
+    sol = Etoile(modele="Genec",source = "classique_m1.0.wg")
 
+    age_e1 = 10**A_Genec.Age(X=0.62)
+    age_e2 = 10**sol.Age(X=0.55)
+    age_e3 = 10**B_Genec.Age(X=0.58)
+
+    e1.Evolution("X", legende = "Etoile 1", couleur = "blue")
+    e3.Evolution("X", legende = "Etoile 2", couleur = "red")
+    e5.Evolution("X", legende = "Etoile 3", couleur = "green")
+
+    axes.set_xlabel("R [Ro]")
+    axes.set_ylabel("X")
 
     axes.legend()
     
