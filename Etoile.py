@@ -89,6 +89,15 @@ class Structure (object):
         axes.set_xlabel(X)
         axes.set_ylabel(parametre)
 
+    def Convection (self) :
+        for i in range(len(self.nablad)):
+            nablad = self.nablad[i]
+            nablarad= self.nablarad[i]
+
+            if abs(nablad-nablarad) < 0.01 :
+                plt.axvline(x = self.R[i],color='gray',linestyle='--',label="nablad=nablarad")
+                return self.R[i]
+
 class Etoile (object): 
     def __init__(self, modele, source):
 
@@ -148,7 +157,7 @@ class Etoile (object):
                     self.t.append(log(float(ligne[2]),10))
                     self.M.append(float(ligne[3]))
                     self.L.append(float(ligne[4]))
-                    self.T.append(float(ligne[5])-log(5700,10))
+                    self.T.append(float(ligne[5])-log(5777,10))
 
                     # Calcul du Rayon avec la loi de Stefan
 
@@ -271,18 +280,27 @@ class Etoile (object):
 
         plt.plot(self.T,self.L,linewidth=1,label=legende,color=couleur)
 
-    def Evolution (self, parametre,couleur="black",legende="graphique",  X="t" ,log = False,logx = False,masse = True,Zini = False): #Définit la fonction qui trace les évolutions, par défaut au cours du temps
+    def Evolution (self, parametre,couleur="black",legende="graphique",  X="t" ,log = False,logx = False,masse = True,Zini = False, derivee = False): #Définit la fonction qui trace les évolutions, par défaut au cours du temps
 
         parametre = self.args[parametre]
         X = self.args[X]
         if log : parametre = np.log(parametre)
         if logx : X = np.log(X)
-
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
         if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
         
-        plt.plot(X, parametre,color=couleur,label=legende)
-        
+        if derivee :
+            pente = [0]
+            for i in range(len(X)-1):
+                pente.append((parametre[i+1]-parametre[i])/(X[i+1]-X[i]))
+            pente=np.array(pente)
+            
+            plt.plot(X, pente,color=couleur,label=legende)
+            
+        else : 
+
+            plt.plot(X, parametre,color=couleur,label=legende)
+            
     def Para (self, age, parametres, err = 1e7): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
 
         i = 0
@@ -324,20 +342,8 @@ if __name__ == "__main__" :
     e5 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v1")
     e6 = Structure(modele = "Genec", source = "Fichiers_structure/classique_m1.5.v2")
 
-    A_Genec = Etoile(modele="Genec",source = "A.wg")
-    B_Genec = Etoile(modele="Genec",source = "B.wg")
-    sol = Etoile(modele="Genec",source = "classique_m1.0.wg")
-
-    age_e1 = 10**A_Genec.Age(X=0.62)
-    age_e2 = 10**sol.Age(X=0.55)
-    age_e3 = 10**B_Genec.Age(X=0.58)
-
-    e1.Evolution("X", legende = "Etoile 1", couleur = "blue")
-    e3.Evolution("X", legende = "Etoile 2", couleur = "red")
-    e5.Evolution("X", legende = "Etoile 3", couleur = "green")
-
-    axes.set_xlabel("R [Ro]")
-    axes.set_ylabel("X")
+    e6.Convection()
+    e6.Evolution("X",legende="X = 0.35",couleur="red")
 
     axes.legend()
     
