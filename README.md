@@ -4,8 +4,7 @@
 Modèles supportés : STAREVOL, GENEC
 
 
-MAJ 22/02/2023
-Rajout de la traitation des fichiers de structure
+MAJ de aujourd'hui : Conversion des Rayons en rayons solaires pour que Tigrou soit content
 
 TBA : 
 - nouveau modèle d'évolution stellaire
