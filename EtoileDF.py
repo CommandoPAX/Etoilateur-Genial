@@ -278,7 +278,9 @@ class Etoile (object):
         for e in elts :
             self.args[e+"_surf"] = self.abondances_surf[e]
             self.args[e+"_coeur"] = self.abondances_coeur[e]
-
+        
+        for i in self.DF.columns :                       # Rajout des nouvelles variables qu'on sait pas à quoi elles servent
+            if not i in self.args : self.args[i] = np.array(self.DF[i])
 
         self.M_ini = self.M[0]
         self.Z_ini = self.Z_coeur[0]
