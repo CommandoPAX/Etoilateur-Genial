@@ -4,9 +4,11 @@
 Modèles supportés : STAREVOL, GENEC
 
 
-MAJ de aujourd'hui : Conversion des Rayons en rayons solaires pour que Tigrou soit content
-Rajout de la fonction convection, qui trace des lignes
+MAJ de ce matin :
+J'ai rajouté le dataframe pour Starevol et repris complètement la partie Genec qui ne compilait même pas chez moi (je crois qu'il y avait une boucle infinie)
+J'ai remodifié les parties évolutions et le diagramme HR qui ne marchaient pas non plus
+Au final pandas sert surtout à charger les données de façon plus efficace qu'avant, on a accès à toutes les variables
+J'ai également rajouté la fonction Etoile.Rien qui ne fait rien
 
 TBA : 
-- nouveau modèle d'évolution stellaire
-- interface graphique ?
+Fichiers de structures
