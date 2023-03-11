@@ -21,9 +21,9 @@ F Castillo et T Bruant 2023
 
 Conventions pour les données et leurs unités :
 
-Luminosité : L | log L/Lo
+Luminosité : L | L/Lo
 Rayon : R | R/Ro
-Température : T | logT/To
+Température : T | T/To
 Masse : M | M/Mo
 temps/age : t | annees
 
