@@ -33,75 +33,76 @@ class Structure (object):
     def __init__ (self, modele, source):
         global axes
         
-        structure = pd.DataFrame() #Création du dataframe ou seront stocké les données, index par rapport au Rayon
-
         self.modele = modele
         self.source = source
-        self.couche = []
-        self.M = []
-        self.P = []
-        self.T = []
-        self.R = []
-        self.X = []
-        self.Y = []
-        self.C12 = []
-        self.O16 = []
-        self.rho = []
-        self.nablad = []
-        self.nablarad=[]
-        self.vraiemasse = []
 
+        self.elts = ["n","X","2H","3He","Y","6Li","7Li","9Be","10B","11B",
+            "12C","13C","14C","14N","15N","15O","16O","17O","18O","18F","19F","20Ne",
+            "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","27Al"] #Homogénéisation de la notation Genec-Starevol
+        self.elts_sv = ["n","H1","H2","He3","He4","Li6","Li7","Be9","B10","B11",
+            "C12","C13","C14","N14","N15","O15","O16","O17","O18","F18","F19","Ne20",
+            "Ne21","Ne22","Na23","Mg24","Mg25","Mg26","Al27"] 
+
+        self.dico_elts = {}
+        
+        for k in range(len(self.elts_sv)) : self.dico_elts[self.elts_sv[k]] = self.elts[k]
 
         if self.modele == "Genec" :
             fichier = open(self.source,"r")
-            for i in range(3) :
-                ligne = fichier.readline()
+            
+            fichier.close()
+        
+        if self.modele == "Starevol":
+                
+            fichiers = [0,0,0,0,0,0,0]
+            DFS = [0,0,0,0,0,0,0]
+                    
+            for root,dirs,files in os.walk(self.source): #ouvre tout les fichiers utiles
+                for file in files:
+                    if not ".gz" in file :
+                        if (".p1" in file and not ".p10" in file
+                            and not ".p11" in file and not ".p12" in file
+                            and not ".p13" in file and not "._" in file): fichiers[0] = open(os.path.join(root,file),"r")
+                        if ".p2" in file : fichiers[1] = open(os.path.join(root,file),"r")
+                        if ".p3" in file : fichiers[2] = open(os.path.join(root,file),"r")
+                        if ".p4" in file : fichiers[3] = open(os.path.join(root,file),"r")
+                        if ".p5" in file : fichiers[4] = open(os.path.join(root,file),"r")
+                        if ".p6" in file : fichiers[5] = open(os.path.join(root,file),"r")
+                        if ".p7" in file : fichiers[6] = open(os.path.join(root,file),"r")
+                            
+            for i in range(len(fichiers)) :
+                k = fichiers[i]
 
-            while 1 :
-                ligne = fichier.readline()
+                if k == "":
+                    raise NameError ("Des fichiers n'ont pas été trouvés")
 
-                if ligne == "" : break
+                texte = ""
+                while 1 :
+                    l = k.readline()
+                    if l =="" : break
+                    if (not "@" in l) and (not "<" in l) and (not ">" in l) :
+                        texte+=l
+                    
+                for j in range(10):
+                    texte = texte.replace("  "," ")
+                    texte = texte.replace("\n ","\n")
+                    texte = texte.replace(" \n","\n")
 
-                for i in range(3):  
-                    ligne = ligne.replace("  "," ")
-                ligne = ligne.split(" ")
+                texte = texte.replace("# ","")
 
-                self.couche.append(float(ligne[1]))
-                self.M.append(float(ligne[2]))
-                self.P.append(float(ligne[3]))
-                self.T.append(float(ligne[4]))
-                self.R.append(float(ligne[5]))
-                self.X.append(float(ligne[7]))
-                self.C12.append(float(ligne[9]))
-                self.O16.append(float(ligne[10]))
-                self.nablad.append(float(ligne[29]))
-                self.vraiemasse.append(ligne[50])
-                self.nablarad.append(float(ligne[14]))
+                for k in self.dico_elts :
+                    texte = texte.replace(k,self.dico_elts[k])
+                
+                texte=StringIO(texte)
+                DFS[i]=pd.read_csv(texte,delimiter =" ")
 
-            self.couche=np.array(self.couche)        
-            self.P=10**np.array(self.P)        
-            self.T=10**np.array(self.T)        
-            self.R=10**np.array(self.R)/6.857e10
-            self.M=np.array(self.M)
-            self.C12 = np.array(self.C12)
-            self.O16 = np.array(self.O16)
-            self.nablad = np.array(self.nablad)
-            self.X = np.array(self.X)
-            self.Y = np.array(self.Y)
+            self.DF = pd.concat(DFS,axis=1)
 
-            self.args = {"M" : self.M,
-                         "P" : self.P,
-                         "T" : self.T,
-                         "R" : self.R,
-                         "12C": self.C12,
-                         "16O" : self.O16,
-                         "nablad" : self.nablad,
-                         "vraiemasse" : self.vraiemasse,
-                         "nablarad" : self.nablarad,
-                         "X" : self.X,
-                         "Y": self.Y
-                         }
-                         
+        self.args = {}        
+
+        for i in self.DF.columns :
+            if not i in self.args : self.args[i] = np.array(self.DF[i])
+        for k in fichiers : k.close()
 
     def Evolution (self,parametre,legende,X = "R", couleur="black",masse = True):
         if masse : legende += " ; M = "+str(self.vraiemasse[0])+" Mo"
