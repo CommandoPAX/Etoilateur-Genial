@@ -171,16 +171,11 @@ class Etoile (object):
                 texte += k+" "
             texte+="\n"
 
-            while 1 :   # Lecture du fichier et stockage dans un dataframe
+            texte += fichier.read()
 
-                ligne = fichier.readline()
-                if ligne == "" : break
-
-                for i in range(10):  
-                    ligne = ligne.replace("  "," ")
-                    ligne = ligne.replace("\n ","\n")
-
-                texte +=ligne[1:]
+            for i in range(10):  
+                    texte = texte.replace("  "," ")
+                    texte = texte.replace("\n ","\n")
 
             texte=StringIO(texte)
             self.DF=pd.read_csv(texte,delimiter=" ")
