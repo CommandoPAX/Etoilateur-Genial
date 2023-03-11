@@ -371,7 +371,14 @@ class Etoile (object):
 
     def Rien (self):    #fonction qui ne fait rien
         pass
-
+    
+    def Spammer_Aaron (self):
+        for k in self.DF.columns :
+            try:
+                self.Evolution(Varx="t",Vary=k,ylegend=k,logx=True,label="Aaron",show=False)
+                plt.savefig("./Aaron/Aaron "+k.replace("/","-")+".png")
+                plt.cla()
+            except : print(k)
 
 if __name__ == "__main__" :
 
