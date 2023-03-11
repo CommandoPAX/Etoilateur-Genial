@@ -17,7 +17,17 @@ sns.set(font_scale=1.5,font="Ubuntu") # fixe la taille de la police à 1.5 * 12p
 
 """Programme qui parcourt les fichiers générés par Genec et Starevol
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
-F Castillo et T Bruant 2023"""
+F Castillo et T Bruant 2023
+
+Conventions pour les données et leurs unités :
+
+Luminosité : L | log L/Lo
+Rayon : R | R/Ro
+Température : T | logT/To
+Masse : M | M/Mo
+temps/age : t | annees
+
+"""
 
 class Structure (object):
     def __init__ (self, modele, source):
