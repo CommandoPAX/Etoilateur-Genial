@@ -18,15 +18,12 @@ sns.set(font_scale=1.5,font="Ubuntu") # fixe la taille de la police à 1.5 * 12p
 """Programme qui parcourt les fichiers générés par Genec et Starevol
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
 F Castillo et T Bruant 2023
-
 Conventions pour les données et leurs unités :
-
 Luminosité : L | L/Lo
 Rayon : R | R/Ro
 Température : T | T/To
 Masse : M | M/Mo
 temps/age : t | annees
-
 """
 
 class Structure (object):
@@ -35,13 +32,15 @@ class Structure (object):
         
         self.modele = modele
         self.source = source
-
+        self.test = "Erreur"
         self.elts = ["n","X","2H","3He","Y","6Li","7Li","9Be","10B","11B",
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","18F","19F","20Ne",
-            "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","27Al"] #Homogénéisation de la notation Genec-Starevol
+            "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","27Al", "Alg26","28Si", "32S", 
+            "36Ar", "Ca40", "44Ti", "48Cr", "52Fe", "56Ni"] #Homogénéisation de la notation Genec-Starevol
         self.elts_sv = ["n","H1","H2","He3","He4","Li6","Li7","Be9","B10","B11",
             "C12","C13","C14","N14","N15","O15","O16","O17","O18","F18","F19","Ne20",
-            "Ne21","Ne22","Na23","Mg24","Mg25","Mg26","Al27"] 
+            "Ne21","Ne22","Na23","Mg24","Mg25","Mg26","Al27", "26Alg","Si28", "S32", 
+            "Ar36", "Ca40", "Ti44", "Cr48", "Fe52", "Ni56"]  
 
         self.dico_elts = {}
         
@@ -50,6 +49,39 @@ class Structure (object):
         if self.modele == "Genec" :
             fichier = open(self.source,"r")
             
+            '''Import des données pour le cas du modèle GENEC'''
+
+            fichier = open(self.source,'r')
+            
+            Data = ""
+
+            fichier.readline() #enlève les deux premières lignes sans données intéressantes
+            fichier.readline()
+            while 1 : #J'aime le danger
+                line = fichier.readline() #lis les lignes
+
+                if line == "" : break #On a toujours une ligne vide à la fin, sert de check pour la fin de la boucle
+
+                for j in range(10): #Vire les espaces de merde
+                    line = line.replace("  "," ")
+                    line = line.replace("\n ","\n")
+                    line = line.replace(" \n","\n")
+                    line = line.replace("#","")
+                Data += line
+
+            for k in self.dico_elts :
+                    Data = Data.replace(k,self.dico_elts[k])
+
+            Data=StringIO(Data)
+            
+            self.DF = pd.read_csv(Data, delimiter = " ")
+            self.test = self.DF
+            
+            self.args = {}        
+
+            for i in self.DF.columns :
+                if not i in self.args : self.args[i] = np.array(self.DF[i])
+
             fichier.close()
         
         if self.modele == "Starevol":
@@ -98,11 +130,11 @@ class Structure (object):
 
             self.DF = pd.concat(DFS,axis=1)
 
-        self.args = {}        
+            self.args = {}        
 
-        for i in self.DF.columns :
-            if not i in self.args : self.args[i] = np.array(self.DF[i])
-        for k in fichiers : k.close()
+            for i in self.DF.columns :
+                if not i in self.args : self.args[i] = np.array(self.DF[i])
+            for k in fichiers : k.close()
 
     def Evolution (self,parametre,legende,X = "R", couleur="black",masse = True):
         if masse : legende += " ; M = "+str(self.vraiemasse[0])+" Mo"
@@ -120,6 +152,9 @@ class Structure (object):
             if abs(nablad-nablarad) < 0.01 :
                 plt.axvline(x = self.R[i],color='gray',linestyle='--',label="nablad=nablarad")
                 return self.R[i]
+            
+    def Test (self) :
+        print(self.test)
 
 class Etoile (object): 
     def __init__(self, modele, source):
@@ -381,12 +416,5 @@ if __name__ == "__main__" :
     axes = plt.gca()
     axes.invert_xaxis()
 
-    Sol = Etoile(modele = "Starevol",source = "./CLASSIQUE_M1.0")
-    SolG = Etoile(modele="Genec",source="classique_m1.0.wg")
-
-    Sol.Rien()
-
-    Sol.HR(masse=True,axes=axes,legende="Starevol")
-    SolG.HR(masse= True, axes=axes,legende="Genec")
-    
-    plt.show()
+    Sol = Structure(modele = "Genec", source = "T:\Cours\DATA\GENEC\classique_m1.0.v1")
+    Sol.Test()
