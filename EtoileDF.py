@@ -32,7 +32,7 @@ class Structure (object):
         
         self.modele = modele
         self.source = source
-        self.test = "Erreur"
+        self.test = "Erreur" #Fonction test
         self.elts = ["n","X","2H","3He","Y","6Li","7Li","9Be","10B","11B",
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","18F","19F","20Ne",
             "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","27Al", "Alg26","28Si", "32S", 
@@ -69,17 +69,17 @@ class Structure (object):
                     line = line.replace("#","")
                 Data += line
 
-            for k in self.dico_elts :
+            for k in self.dico_elts : #change le nom des élements pour être en accord avec les conventions
                     Data = Data.replace(k,self.dico_elts[k])
 
             Data=StringIO(Data)
             
-            self.DF = pd.read_csv(Data, delimiter = " ")
+            self.DF = pd.read_csv(Data, delimiter = " ") #crée le dataframe ou sont stocké les données dans le format standard. Attention : pas d'index
             self.test = self.DF
             
             self.args = {}        
 
-            for i in self.DF.columns :
+            for i in self.DF.columns : #Passe les colonnes en array numpy, plus rapide pour les calculs
                 if not i in self.args : self.args[i] = np.array(self.DF[i])
 
             fichier.close()
@@ -153,7 +153,7 @@ class Structure (object):
                 plt.axvline(x = self.R[i],color='gray',linestyle='--',label="nablad=nablarad")
                 return self.R[i]
             
-    def Test (self) :
+    def Test (self) : #Utilisé pour le débugging, inutile sinon
         print(self.test)
 
 class Etoile (object): 
@@ -326,7 +326,7 @@ class Etoile (object):
         self.M_ini = self.M[0]
         self.Z_ini = self.Z_coeur[0]
 
-        self.DF.set_index("t")
+        self.DF.set_index("t", inplace = True)
 
     def HR (self,couleur="black",legende="graphique",masse = True,Zini = False,axes ="",show = False): #Définit la fonction qui trace les diagrammes HR
 
@@ -373,22 +373,29 @@ class Etoile (object):
             
     def Para (self, age, parametres): #Affiche les valeurs de certains parametres à un age donné. Prend une liste de str comme argument
 
-        i = 0
+        index_DF = list(self.DF.index.values.tolist())
+        if type(parametres) != list : print("Mauvais type de données")
 
-        for t in self.t :
-            if abs(10**t-age) < err: break
-            i +=1
+        varage = age - index_DF[0]
+        varage_pre = varage #evite un crash si le programme stop à l'itération 0
+        i = 1
+        while varage > 0 : #cherche les plus proches valeurs
+            varage_pre = varage
+            varage = age - index_DF[i]
+            i += 1
 
-        valeurs = []
+        if abs(varage) < abs(varage_pre) : i = i-1
+        if abs(varage) > abs(varage_pre) : i = i-2
+        if abs(varage) == abs(varage_pre) : i = i-1
 
-        for p in parametres :
-            p = self.args[p]
-            if i == len(p) :
-                raise ValueError ("Aucune valeur de l'âge ne correspond") #Peut etre causé par une marge d'erreur trop petite, ou l'étoile est deja morte à cet age
+        print("t : ", index_DF[i]) #Affiche l'âge trouvé
 
-            valeurs.append(p[i])
-
-        return valeurs
+        for para in parametres : #Affiche tout les paramètres
+            try :
+                print(para, ": ", self.DF[para].iloc[i])
+            except :
+                print("Erreur : ", para),
+                pass
 
     def Age (self, X, err = 0.01):
 
@@ -416,5 +423,5 @@ if __name__ == "__main__" :
     axes = plt.gca()
     axes.invert_xaxis()
 
-    Sol = Structure(modele = "Genec", source = "T:\Cours\DATA\GENEC\classique_m1.0.v1")
-    Sol.Test()
+    Sol = Etoile(modele = "Genec", source = "T:\Cours\DATA\GENEC\classique_m1.0.wg")
+    Sol.Para(570000, ["X_coeur", "Y_coeur"])
