@@ -6,13 +6,18 @@ Modèles supportés : STAREVOL, GENEC
 
 MAJ de ce matin :
 
-J'ai rajouté le dataframe pour Starevol et repris complètement la partie Genec qui ne compilait même pas chez moi (je crois qu'il y avait une boucle infinie).
+Rajout d'une fonction Etoile.__getitem__ qui permet d'accéder à une variable sans passer par Etoile.args
 
-J'ai remodifié les parties évolutions et le diagramme HR qui ne marchaient pas non plus
+Optimisation du code des fichiers de Structure pour Genec qui lisait ligne/ligne (il faudrait voir si on peut trouver un moyen de le faire pour Starevol)
 
-Au final pandas sert surtout à charger les données de façon plus efficace qu'avant, on a accès à toutes les variables
+Conversion dans les bonnes unités des trucs qui étaient en log dans les fichiers de structure
 
-J'ai également rajouté la fonction Etoile.Rien qui ne fait rien
+Optimisation des fonctions Etoile.Parametre et Etoile.age
+
+Structure.Convection marche de nouveau
 
 TBA : 
-Fichiers de structures
+
+Deux ou trois trucs à optimiser
+
+Je n'ai pas trouvé la variable qui donne la masse totale pour le fichiers de Structure Starevol
