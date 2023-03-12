@@ -6,7 +6,7 @@ Modèles supportés : STAREVOL, GENEC
 
 MAJ de ce matin :
 
-Rajout d'une fonction Etoile.__getitem__ qui permet d'accéder à une variable sans passer par Etoile.args
+Rajout d'une fonction Etoile.\__getitem__ qui permet d'accéder à une variable sans passer par Etoile.args
 
 Optimisation du code des fichiers de Structure pour Genec qui lisait ligne/ligne (il faudrait voir si on peut trouver un moyen de le faire pour Starevol)
 
