@@ -20,4 +20,4 @@ TBA :
 
 Deux ou trois trucs à optimiser
 
-Je n'ai pas trouvé la variable qui donne la masse totale pour le fichiers de Structure Starevol
+Je n'ai pas trouvé la variable qui donne la masse totale pour le fichiers de structure Starevol
