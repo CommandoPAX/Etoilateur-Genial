@@ -64,7 +64,7 @@ class Structure (object):
                 Data = Data.replace("#","")
 
             for k in self.dico_elts : # Change le nom des élements pour être en accord avec les conventions
-                    Data = Data.replace(k,self.dico_elts[k])
+                Data = Data.replace(k,self.dico_elts[k])
 
             Data=StringIO(Data)
             
@@ -105,18 +105,16 @@ class Structure (object):
             for i in range(len(fichiers)) :
                 k = fichiers[i]
 
-                if k == "":
+                if k == 0:
                     raise NameError ("Des fichiers n'ont pas été trouvés")
 
-                texte = ""
-                while 1 :
-                    l = k.readline()
-                    if l =="" : break
-                    if (not "@" in l) and (not "<" in l) and (not ">" in l) :
-                        texte+=l
+                texte = k.read()
                     
                 for j in range(10):
                     texte = texte.replace("  "," ")
+                    texte = texte.replace("@","")
+                    texte = texte.replace(">","")
+                    texte = texte.replace("<","")
                     texte = texte.replace("\n ","\n")
                     texte = texte.replace(" \n","\n")
 
@@ -184,14 +182,14 @@ class Etoile (object):
         self.Z_surf = []
         self.Z_coeur = [] 
 
-        elts = ["X","2H","3He","Y","6Li","7Li","7Be","9Be","10B","11B",
+        self.elts = ["X","2H","3He","Y","6Li","7Li","7Be","9Be","10B","11B",
             "12C","13C","14C","14N","15N","15O","16O","17O","18O","19F","20Ne",
             "21Ne","22Ne","23Na","24Mg","25Mg","26Mg","26Alm","26Alg","27Al","28Si","29Si",
             "30Si","31P","32S","33S","34S","35S","35Cl","36S","36Cl","37Cl","heavy"] # Liste de tous les éléments considérés
         
         self.abondances_surf={}
         self.abondances_coeur={}
-        for i in elts :
+        for i in self.elts :
             self.abondances_surf [i] = []
             self.abondances_coeur[i] = []
         
@@ -226,7 +224,7 @@ class Etoile (object):
             texte=StringIO(texte)
             self.DF=pd.read_csv(texte,delimiter=" ")
 
-            for i in elts :
+            for i in self.elts :
                 try :
                     self.abondances_surf[i]=np.array(self.DF[i+"_surf"])
                     self.abondances_coeur[i]=np.array(self.DF[i+"_coeur"])
@@ -248,23 +246,23 @@ class Etoile (object):
             fichiers = [0,0,0,0,0,0,0,0,0]
             DFS = [0,0,0,0,0,0,0,0,0]
                     
-            for root,dirs,files in os.walk(source): # Ouvre tout les fichiers utiles
+            for root,dirs,files in os.walk(source,topdown=False): # Ouvre tout les fichiers utiles
                 for file in files :
                     if not ".gz" in file :
-                        if "c1" in file : fichiers[5] = open(os.path.join(root,file),"r")
-                        if "c2" in file : fichiers[6] = open(os.path.join(root,file),"r")
-                        if "c3" in file : fichiers[7] = open(os.path.join(root,file),"r")
-                        if "c4" in file : fichiers[8] = open(os.path.join(root,file),"r")
-                        if "s1" in file : fichiers[1] = open(os.path.join(root,file),"r")
-                        if "s2" in file : fichiers[2] = open(os.path.join(root,file),"r")
-                        if "s3" in file : fichiers [3] = open(os.path.join(root,file),"r")
-                        if "s4" in file : fichiers[4] = open(os.path.join(root,file),"r")
+                        if ".c1" in file : fichiers[5] = open(os.path.join(root,file),"r")
+                        if ".c2" in file : fichiers[6] = open(os.path.join(root,file),"r")
+                        if ".c3" in file : fichiers[7] = open(os.path.join(root,file),"r")
+                        if ".c4" in file : fichiers[8] = open(os.path.join(root,file),"r")
+                        if ".s1" in file : fichiers[1] = open(os.path.join(root,file),"r")
+                        if ".s2" in file : fichiers[2] = open(os.path.join(root,file),"r")
+                        if ".s3" in file : fichiers [3] = open(os.path.join(root,file),"r")
+                        if ".s4" in file : fichiers[4] = open(os.path.join(root,file),"r")
                         if file == "mevol.hr": fichiers[0] = open(os.path.join(root,file),"r")
-                            
+
             for i in range(len(fichiers)) :
                 k = fichiers[i]
 
-                if k == "":
+                if k == 0:
                     raise NameError ("Des fichiers n'ont pas été trouvés")
 
                 texte = ""
@@ -293,27 +291,29 @@ class Etoile (object):
             self.M = np.array(self.DF["M"])
 
             # A optimiser avec le dico
-
-            for e in elts :
-                if e == "X" :
-                    self.abondances_coeur[e] = np.array(self.DF_coeur["H1"]) 
-                    self.abondances_surf[e]  = np.array(self.DF_surf["H1"])
-                elif e == "Y" :
-                    self.abondances_coeur[e] = np.array(self.DF_coeur["He4"]) 
-                    self.abondances_surf[e]  = np.array(self.DF_surf["He4"])
-                elif e=="heavy" :
-                    self.abondances_coeur[e] = np.array(self.DF_coeur["heavy"]) 
-                    self.abondances_surf[e]  = np.array(self.DF_surf["heavy"])
-                else:
-                    try :
-                        self.abondances_coeur[e] = np.array(self.DF_coeur[e[-1:]+e[:-1]])   # Transforme par exemple 12C en C12
-                        self.abondances_surf[e]  = np.array(self.DF_surf[e[-1:]+e[:-1]])
-                    except KeyError:
+      
+            for e in self.elts :
+                try :
+                    if e == "X" :
+                        self.abondances_coeur[e] = np.array(self.DF_coeur["H1"]) 
+                        self.abondances_surf[e]  = np.array(self.DF_surf["H1"])
+                    elif e == "Y" :
+                        self.abondances_coeur[e] = np.array(self.DF_coeur["He4"]) 
+                        self.abondances_surf[e]  = np.array(self.DF_surf["He4"])
+                    elif e=="heavy" :
+                        self.abondances_coeur[e] = np.array(self.DF_coeur["heavy"]) 
+                        self.abondances_surf[e]  = np.array(self.DF_surf["heavy"])
+                    else:
                         try :
-                            self.abondances_coeur[e] = np.array(self.DF_coeur[e[-2:]+e[:-2]])   # Idem pour les elts de deux lettres, par exemple He
-                            self.abondances_surf[e]  = np.array(self.DF_surf[e[-2:]+e[:-2]])
+                            self.abondances_coeur[e] = np.array(self.DF_coeur[e[-1:]+e[:-1]])   # Transforme par exemple 12C en C12
+                            self.abondances_surf[e]  = np.array(self.DF_surf[e[-1:]+e[:-1]])
                         except KeyError:
-                            pass    # Ca bugue encore pour Al26m, flemme de réfléchir
+                            try :
+                                self.abondances_coeur[e] = np.array(self.DF_coeur[e[-2:]+e[:-2]])   # Idem pour les elts de deux lettres, par exemple He
+                                self.abondances_surf[e]  = np.array(self.DF_surf[e[-2:]+e[:-2]])
+                            except KeyError:
+                                pass    # Ca bugue encore pour Al26m, flemme de réfléchir
+                except : print(self.DF_coeur.columns)
 
         self.Z_coeur = 1- self.abondances_coeur["X"]-self.abondances_coeur["Y"]
         self.Z_surf = 1- self.abondances_surf["X"]-self.abondances_surf["Y"]
@@ -330,7 +330,7 @@ class Etoile (object):
                      "Z_coeur" : self.Z_coeur
                      }
         
-        for e in elts :
+        for e in self.elts :
             self.args[e+"_surf"] = self.abondances_surf[e]
             self.args[e+"_coeur"] = self.abondances_coeur[e]
         
@@ -345,7 +345,7 @@ class Etoile (object):
     def __getitem__ (self,x):           # Permet d'accéder à un paramètre directement en tapant Etoile["parametre"]
         return self.args[x]
     
-    def HR (self,couleur="black",legende="graphique",masse = True,Zini = False,axes ="",show = False): # Définit la fonction qui trace les diagrammes HR
+    def HR (self,couleur="",legende="graphique",masse = True,Zini = False,axes ="",show = False): # Définit la fonction qui trace les diagrammes HR
 
         if axes == "" : 
             axes = plt.gca()
@@ -354,7 +354,9 @@ class Etoile (object):
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
         if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
 
-        plt.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
+        if couleur == "" : plt.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
+        else : plt.plot(np.log10(self.T/5777),np.log10(self.L),label=legende, color=couleur)
+        
         plt.legend()
 
         axes.set_xlabel("log T/To")
@@ -362,24 +364,26 @@ class Etoile (object):
 
         if show : plt.show()
 
-    def Evolution (self, Varx = "t", Vary = [], xlegend = "xlegend", ylegend = "ylegend", label="", logx = False, masse = False, Zini = False, show = True) : 
+    def Evolution (self, x = "t", parametres = [], xlegend = "xlegend", ylegend = "ylegend", ls="", legende="", logx = False, masse = False, Zini = False, show = False) : 
         
         if xlegend == "xlegend":
-            xlegend = Varx
+            xlegend = x
             if logx : xlegend ="log "+xlegend
             
-        if type(Vary) == str : Vary = [Vary] 
+        if type(parametres) == str : Vary = [parametres] 
 
-        X = self.args[Varx]
+        X = self.args[x]
         if logx : X = np.log10(X)
 
-        for i in Vary : 
-            lab = label + "; " + i
+        for i in parametres : 
+            lab = legende + "; " + i
 
             if masse : lab += " ; M = "+str(self.M_ini)+" Mo"
             if Zini  : lab += " ; Z_ini ="+str(self.Z_ini)
 
-            plt.plot(X,self.args[i],label=lab)
+            if ls == "" : plt.plot(X,self.args[i],label=lab)
+            else : plt.plot(X,self.args[i],label=lab, linestyle=ls)
+
         
         plt.xlabel(xlegend) 
         plt.ylabel(ylegend)
@@ -419,10 +423,23 @@ class Etoile (object):
 if __name__ == "__main__" :
 
     axes = plt.gca()
-    Struct = Structure(modele="Genec", source="Fichiers_structure/classique_m1.0.v1")
-    StructSV = Structure (modele = "Starevol", source = "Structure_M1")
-    
-    Struct.Evolution(parametres=["12C","14N","16O"],X="r",show=False,legende="Pas de rotation")
-    StructSV.Evolution(parametres=["12C","14N","16O"],X="r",show=False,legende="Rotation")
 
+    #axes.invert_xaxis()
+    
+    Rot = Etoile(modele="Starevol",source="./ROTATION1_M1.0/")
+    Rot_giant = Etoile(modele="Starevol",source="./ROTATION1_M1.0_ROTOPTI_GIANT/")
+    Rot_Genec = Etoile(modele="Genec", source = "rotation_m1.0.wg")
+    Sol_Genec = Etoile(modele="Genec", source = "classique_m1.0.wg")
+    Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
+    
+    Struct_rot = Structure (modele = "Starevol", source = "Structure_M1")
+    Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v1")
+
+    Rot_giant.Evolution(parametres=["T"],masse = True,legende = "Rotation",logx = True)
+    Sol_Starevol.Evolution(parametres=["T"],masse = True, legende = "Sans rotation",ls="--",logx =True,ylegend = "Rayons [Ro]")
+
+    plt.axvline(x=9.68,color="black",linestyle="--",label="Trot = Tpasrot = Tcarotte")
+
+    plt.legend()
+    
     plt.show()
