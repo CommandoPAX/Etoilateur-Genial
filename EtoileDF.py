@@ -141,14 +141,15 @@ class Structure (object):
     def __getitem__ (self,x): # Permet d'accéder à un paramètre directement en tapant Etoile["parametre"]
         return self.args[x]
 
-    def Evolution (self,parametres,legende,X = "r", masse = True,xlegende="",ylegende="",show=False):
+    def Evolution (self,parametres,legende,X = "r", masse = True,xlegende="",ylegende="",show=False, ls = ""):
 
         if type(parametres) == str : parametres = [parametres]
 
         if xlegende == "" : xlegende = X
 
         for y in parametres :
-            plt.plot(self.args[X],self.args[y], label=legende+" ; "+y)
+            if ls == "" : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y)
+            else : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y, linestyle = ls)
 
         axes.set_xlabel(xlegende)
         axes.set_ylabel(ylegende)
@@ -433,12 +434,12 @@ if __name__ == "__main__" :
     Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
     
     Struct_rot = Structure (modele = "Starevol", source = "Structure_M1")
-    Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v1")
+    Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v2")
 
-    Rot_giant.Evolution(parametres=["T"],masse = True,legende = "Rotation",logx = True)
-    Sol_Starevol.Evolution(parametres=["T"],masse = True, legende = "Sans rotation",ls="--",logx =True,ylegend = "Rayons [Ro]")
+    Struct_rot.Evolution(parametres=["T"],masse = True,legende = "Rotation")
+    Struct_gen.Evolution(parametres=["T"],masse = True, legende = "Sans rotation",ls="--")
 
-    plt.axvline(x=9.68,color="black",linestyle="--",label="Trot = Tpasrot = Tcarotte")
+    #plt.axvline(x=9.68,color="black",linestyle="--",label="Trot = Tpasrot = Tcarotte")
 
     plt.legend()
     
