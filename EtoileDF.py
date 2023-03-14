@@ -158,14 +158,12 @@ class Structure (object):
 
         if show : plt.show()
 
-    def Convection (self) :
-        for i in range(len(self.nablad)):
-            nablad = self.nablad[i]
-            nablarad= self.nablarad[i]
+    def Convection (self,couleur="gray",legende="nablad = nablarad") :
 
-            if abs(nablad-nablarad) < 0.01 :
-                plt.axvline(x = self.args["r"][i],color='gray',linestyle='--',label="nablad=nablarad")
-                return self["r"][i]
+        indice = np.argmin(np.abs(self.nablad-self.nablarad))
+        
+        plt.axvline(x = self["r"][indice],color=couleur,linestyle='--',label=legende)
+        return self["r"][i]
             
 class Etoile (object): 
     def __init__(self, modele, source):
