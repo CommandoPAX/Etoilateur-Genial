@@ -7,14 +7,13 @@ from math import*
 import pandas as pd
 import seaborn as sns
 import sys
-from scipy.misc import derivative
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
     from io import StringIO
     
 sns.set(color_codes = True)
-sns.set(font_scale=1.5,font="Ubuntu") # fixe la taille de la police à 1.5 * 12pt
+sns.set(font_scale=1.5) # fixe la taille de la police à 1.5 * 12pt
 
 """ Programme qui parcourt les fichiers générés par Genec et Starevol
 Permet entre autres de générer le diagramme HR ou l'évolution d'un paramètre au cours du temps, ainsi que renvoyer l'intégralité des paramètres a un age donné
@@ -26,6 +25,8 @@ Température : T | K
 Masse : M | M/Mo
 temps/age : t | annees
 ABondances : fractions massiques """
+
+fg, ax1 = plt.subplots()
 
 class Structure (object):
     def __init__ (self, modele, source):
@@ -162,7 +163,7 @@ class Structure (object):
 
         plt.legend()
 
-        if show : plt.show()
+        if show : ax1.show()
 
     def Convection (self,couleur="gray",legende="nablad = nablarad") :
 
@@ -367,8 +368,8 @@ class Etoile (object):
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
         if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
 
-        if couleur == "" : plt.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
-        else : plt.plot(np.log10(self.T/5777),np.log10(self.L),label=legende, color=couleur)
+        if couleur == "" : ax1.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
+        else : ax1.plot(np.log10(self.T/5777),np.log10(self.L),label=legende, color=couleur)
         
         plt.legend()
 
@@ -377,11 +378,11 @@ class Etoile (object):
 
         if show : plt.show()
 
-    def Evolution (self, x = "t", parametres = [], xlegend = "xlegend", ylegend = "ylegend", ls="", legende="", logx = False, masse = False, Zini = False, show = False) : 
+    def Evolution (self, x = "t", parametres = [], xlegende = "xlegende", ylegende = "ylegende", ls="", legende="", logx = False, masse = False, Zini = False, show = False) : 
         
-        if xlegend == "xlegend":
-            xlegend = x
-            if logx : xlegend ="log "+xlegend
+        if xlegende == "xlegende":
+            xlegende = x
+            if logx : xlegende ="log "+xlegende
             
         if type(parametres) == str : Vary = [parametres] 
 
@@ -395,13 +396,13 @@ class Etoile (object):
             if Zini  : lab += " ; Z_ini ="+str(self.Z_ini)
 
             try:
-                if ls == "" : plt.plot(X,self.args[i],label=lab)
-                else : plt.plot(X,self.args[i],label=lab, linestyle=ls)
+                if ls == "" : ax1.plot(X,self.args[i],label=lab)
+                else : ax1.plot(X,self.args[i],label=lab, linestyle=ls)
             except KeyError : print("Parametre inconnu : "+i)
 
         
-        plt.xlabel(xlegend) 
-        plt.ylabel(ylegend)
+        plt.xlabel(xlegende) 
+        plt.ylabel(ylegende)
 
         plt.legend()
 
@@ -431,7 +432,7 @@ class Etoile (object):
         xn = (x[:-1] + x[1:]) / 2
         yn = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 
-        if plot : plt.scatter(xn, yn, label = legende,s=0.01)
+        if plot : ax1.scatter(xn, yn, label = legende,s=0.01)
 
         return [xn,yn]
 
@@ -441,12 +442,12 @@ class Etoile (object):
     def Spammer_Aaron (self):       # Permet d'enregistrer plein de graphes qu'on peut envoyer aux collègues pour les spammer
         for k in self.DF.columns :
             try:
-                self.Evolution(Varx="t",Vary=k,ylegend=k,logx=True,label="Aaron",show=False)
+                self.Evolution(Varx="t",Vary=k,ylegende=k,logx=True,label="Aaron",show=False)
                 plt.savefig("./Aaron/Aaron "+k.replace("/","-")+".png")
                 plt.cla()
             except : print(k)
 
-def Difference (etoile1,etoile2,parametre,show=False,legende="") :
+def Difference (etoile1,etoile2,parametre,show=False,legende="", Evol = False, couleur = "pink") : #Calcule la différence entre deux modèles
     t1 = etoile1["t"].shape
     t2 = etoile2["t"].shape
 
@@ -459,11 +460,14 @@ def Difference (etoile1,etoile2,parametre,show=False,legende="") :
 
     zeros = np.zeros(shape = etoile1["t"].shape)
 
+    if Evol == True : #True si pour ajouter a un autre graphe, False sinon
+        fg, axdiff = plt.subplots()
+        axdiff = ax1.twinx()
+
     for i in range(len(etoile1["t"])):
-        #print(etoile2.Para(age = float(etoile2["t"][i]),parametres=parametre))
         zeros[i] = etoile1[parametre][i]-etoile2.Para(age = float(etoile1["t"][i]),parametres=parametre)[0]
 
-    plt.plot(etoile1["t"],zeros,label=legende)
+    axdiff.plot(etoile1["t"],zeros,label=legende, color = couleur)
     if show : plt.show()
 
     return zeros
@@ -472,58 +476,13 @@ if __name__ == "__main__" :
 
     axes = plt.gca()
 
-    #axes.invert_xaxis()
-    
-    #Rot = Etoile(modele="Starevol",source="./ROTATION1_M1.0/")
-    Rot_giant = Etoile(modele="Starevol",source="./ROTATION1_M1.0_ROTOPTI_GIANT/")
-    Rot_Genec = Etoile(modele="Genec", source = "rotation_m1.0.wg")
-    Sol_Genec = Etoile(modele="Genec", source = "classique_m1.0.wg")
-    Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
+    Rot = Structure(modele = "Starevol", source = r"C:\Users\bruan\Pictures\ProjetTutore\DATA\Rotation14\Structure_M1")
+    NoRot = Structure(modele = "Starevol", source = r"C:\Users\bruan\Pictures\ProjetTutore\DATA\Structure\STAREVOL")
 
-    print Sol_Starevol.Age(1e-7), Rot_giant.Age(1e-7)
-    
-    #Struct_norot = Structure (modele="Starevol", source = "./Struct_starevol/")
-    #Struct_rot = Structure (modele = "Starevol", source = "./Structure_M1/")
+    Rot.Evolution(parametres = ["T"], legende= "Avec rotation")
+    NoRot.Evolution(parametres = ["T"], legende = "Sans Rotation", ls = "--")
 
-    
-    #Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v2")
-
-
-    #Struct_rot.Evolution(parametres=["24Mg"],masse = True,legende = "Rotation")
-    #Struct_norot.Evolution(parametres=["24Mg"],masse = True,legende = "Pas de rotation",ls="--")
-
-    #plt.axvline(x=Struct_rot["t"][np.argmax(Struct_rot["17O"])],color="black",linestyle="--",label="Pic O16")
-
-    #Struct_rot.Convection()
-
-    #Rot_giant.Evolution(parametres = ["X_surf"], legende ="Rotation")
-    #Sol_Starevol.Evolution(parametres = ["X_surf"], legende ="Pas de rotation", ls="--")
-
-    #axes.set_ylabel("Temperature [K]")
-    #axes.set_xlabel("r/R")
-
-    #Rot_giant.Evolution(parametres=["Y_surf"],legende="Rotation",masse=True)
-    #Sol_Starevol.Evolution(parametres=["Y_surf"],legende="Pas de rotation", masse=True,ls="--")
-
-    #axes.set_ylabel("Abondances surfaces [Fraction massique]")
-
-    #plt.axvline(x=Rot_giant["t"][np.argmax(Rot_giant["13C_coeur"])],color="black",linestyle="--",label="CNO 1 (pic 17O)")
-
-    #plt.axvline(x=Rot_giant["t"][np.argmax(Rot_giant["17O_coeur"])],color="black",linestyle="--",label="CNO 2 (pic 17O)")
-
-    #plt.plot(Rot_giant["t"],zeros,label="Xpasrot-Xrot")
-
-    """Difference(Rot_giant,Sol_Starevol,parametre="12C_coeur")
-    Difference(Rot_giant,Sol_Starevol,parametre="14N_coeur")
-    Difference(Rot_giant,Sol_Starevol,parametre="16O_coeur")
-    Difference(Rot_giant,Sol_Starevol,parametre="17O_coeur")"""
-
-
-    #Difference(Rot_giant,Sol_Starevol,parametre="X_coeur")
-
-
-    axes.set_xlabel("t")
-    axes.set_ylabel("Differences d'abondances [Fraction massique]")
+    Difference(Rot, NoRot, "T", legende = "Différence", show = False, Evol = True)
 
     plt.legend()
     
