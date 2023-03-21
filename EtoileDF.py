@@ -7,6 +7,7 @@ from math import*
 import pandas as pd
 import seaborn as sns
 import sys
+from scipy.misc import derivative
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
@@ -63,6 +64,9 @@ class Structure (object):
                 Data = Data.replace(" \n","\n")
                 Data = Data.replace("#","")
 
+            Data = Data.replace("Nabad","nablad")
+            Data = Data.replace("Nabrad","nablarad")
+
             for k in self.dico_elts : # Change le nom des élements pour être en accord avec les conventions
                 Data = Data.replace(k,self.dico_elts[k])
 
@@ -81,8 +85,6 @@ class Structure (object):
             self.args["r"] = 10**self.args["r"]/6.96e10
             self.args["T"] = 10**self.args["t"]
             self.args["P"] = 10**self.args["p"]
-            self.nablad = self.args["Nabad"]
-            self.nablarad = self.args["Nabrad"]
         
         if self.modele == "Starevol":
                 
@@ -101,6 +103,7 @@ class Structure (object):
                         if ".p5" in file : fichiers[4] = open(os.path.join(root,file),"r")
                         if ".p6" in file : fichiers[5] = open(os.path.join(root,file),"r")
                         if ".p7" in file : fichiers[6] = open(os.path.join(root,file),"r")
+
                             
             for i in range(len(fichiers)) :
                 k = fichiers[i]
@@ -119,13 +122,15 @@ class Structure (object):
                     texte = texte.replace(" \n","\n")
 
                 texte = texte.replace("# ","")
+                texte = texte.replace("abadd","nablad")
+                texte = texte.replace("abrad","nablarad")
 
                 for k in self.dico_elts :
                     texte = texte.replace(k,self.dico_elts[k])
                 
                 texte=StringIO(texte)
                 DFS[i]=pd.read_csv(texte,delimiter =" ")
-
+                
             self.DF = pd.concat(DFS,axis=1)
 
             self.args = {}        
@@ -135,8 +140,7 @@ class Structure (object):
 
             for k in fichiers : k.close()
 
-            self.nablad = self.args["abadd"]
-            self.nablarad = self.args["abrad"]
+        self.args["Z"] = 1-self.args["X"]-self.args["Y"]
 
     def __getitem__ (self,x): # Permet d'accéder à un paramètre directement en tapant Etoile["parametre"]
         return self.args[x]
@@ -148,8 +152,10 @@ class Structure (object):
         if xlegende == "" : xlegende = X
 
         for y in parametres :
-            if ls == "" : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y)
-            else : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y, linestyle = ls)
+            try :
+                if ls == "" : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y)
+                else : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y, linestyle = ls)
+            except KeyError : print("Parametre inconnu : "+y)
 
         axes.set_xlabel(xlegende)
         axes.set_ylabel(ylegende)
@@ -160,10 +166,18 @@ class Structure (object):
 
     def Convection (self,couleur="gray",legende="nablad = nablarad") :
 
-        indice = np.argmin(np.abs(self.nablad-self.nablarad))
-        
-        plt.axvline(x = self["r"][indice],color=couleur,linestyle='--',label=legende)
-        return self["r"][i]
+        diff = self["nablad"]-self["nablarad"]
+        signe = np.sign(diff)
+
+        signechange = np.where(diff[:-1] * diff[1:] < 0 )[0] +1
+
+        r = []
+
+        for k in signechange :
+            r.append(self["r"][k])
+            plt.axvline(x = self["r"][k],color=couleur,linestyle='--',label=legende)
+
+        return r
             
 class Etoile (object): 
     def __init__(self, modele, source):
@@ -380,8 +394,10 @@ class Etoile (object):
             if masse : lab += " ; M = "+str(self.M_ini)+" Mo"
             if Zini  : lab += " ; Z_ini ="+str(self.Z_ini)
 
-            if ls == "" : plt.plot(X,self.args[i],label=lab)
-            else : plt.plot(X,self.args[i],label=lab, linestyle=ls)
+            try:
+                if ls == "" : plt.plot(X,self.args[i],label=lab)
+                else : plt.plot(X,self.args[i],label=lab, linestyle=ls)
+            except KeyError : print("Parametre inconnu : "+i)
 
         
         plt.xlabel(xlegend) 
@@ -408,6 +424,17 @@ class Etoile (object):
 
         return self.t[x_opti]
 
+    def Derivee(self,x,y,legende = "", plot = True):
+        x = self[x]
+        y = self[y]
+
+        xn = (x[:-1] + x[1:]) / 2
+        yn = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
+
+        if plot : plt.scatter(xn, yn, label = legende,s=0.01)
+
+        return [xn,yn]
+
     def Rien (self):    # Fonction qui ne fait rien
         pass
     
@@ -419,25 +446,84 @@ class Etoile (object):
                 plt.cla()
             except : print(k)
 
+def Difference (etoile1,etoile2,parametre,show=False,legende="") :
+    t1 = etoile1["t"].shape
+    t2 = etoile2["t"].shape
+
+    if t1 < t2 :
+        etoile3 = etoile2
+        etoile2 = etoile1
+        etoile1 = etoile3
+
+    if legende == "" : legende = parametre
+
+    zeros = np.zeros(shape = etoile1["t"].shape)
+
+    for i in range(len(etoile1["t"])):
+        #print(etoile2.Para(age = float(etoile2["t"][i]),parametres=parametre))
+        zeros[i] = etoile1[parametre][i]-etoile2.Para(age = float(etoile1["t"][i]),parametres=parametre)[0]
+
+    plt.plot(etoile1["t"],zeros,label=legende)
+    if show : plt.show()
+
+    return zeros
+
 if __name__ == "__main__" :
 
     axes = plt.gca()
 
     #axes.invert_xaxis()
     
-    Rot = Etoile(modele="Starevol",source="./ROTATION1_M1.0/")
+    #Rot = Etoile(modele="Starevol",source="./ROTATION1_M1.0/")
     Rot_giant = Etoile(modele="Starevol",source="./ROTATION1_M1.0_ROTOPTI_GIANT/")
     Rot_Genec = Etoile(modele="Genec", source = "rotation_m1.0.wg")
     Sol_Genec = Etoile(modele="Genec", source = "classique_m1.0.wg")
     Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
+
+    print Sol_Starevol.Age(1e-7), Rot_giant.Age(1e-7)
     
-    Struct_rot = Structure (modele = "Starevol", source = "Structure_M1")
-    Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v2")
+    #Struct_norot = Structure (modele="Starevol", source = "./Struct_starevol/")
+    #Struct_rot = Structure (modele = "Starevol", source = "./Structure_M1/")
 
-    Struct_rot.Evolution(parametres=["T"],masse = True,legende = "Rotation")
-    Struct_gen.Evolution(parametres=["T"],masse = True, legende = "Sans rotation",ls="--")
+    
+    #Struct_gen = Structure (modele="Genec", source = "Fichiers_structure/classique_m1.0.v2")
 
-    #plt.axvline(x=9.68,color="black",linestyle="--",label="Trot = Tpasrot = Tcarotte")
+
+    #Struct_rot.Evolution(parametres=["24Mg"],masse = True,legende = "Rotation")
+    #Struct_norot.Evolution(parametres=["24Mg"],masse = True,legende = "Pas de rotation",ls="--")
+
+    #plt.axvline(x=Struct_rot["t"][np.argmax(Struct_rot["17O"])],color="black",linestyle="--",label="Pic O16")
+
+    #Struct_rot.Convection()
+
+    #Rot_giant.Evolution(parametres = ["X_surf"], legende ="Rotation")
+    #Sol_Starevol.Evolution(parametres = ["X_surf"], legende ="Pas de rotation", ls="--")
+
+    #axes.set_ylabel("Temperature [K]")
+    #axes.set_xlabel("r/R")
+
+    #Rot_giant.Evolution(parametres=["Y_surf"],legende="Rotation",masse=True)
+    #Sol_Starevol.Evolution(parametres=["Y_surf"],legende="Pas de rotation", masse=True,ls="--")
+
+    #axes.set_ylabel("Abondances surfaces [Fraction massique]")
+
+    #plt.axvline(x=Rot_giant["t"][np.argmax(Rot_giant["13C_coeur"])],color="black",linestyle="--",label="CNO 1 (pic 17O)")
+
+    #plt.axvline(x=Rot_giant["t"][np.argmax(Rot_giant["17O_coeur"])],color="black",linestyle="--",label="CNO 2 (pic 17O)")
+
+    #plt.plot(Rot_giant["t"],zeros,label="Xpasrot-Xrot")
+
+    """Difference(Rot_giant,Sol_Starevol,parametre="12C_coeur")
+    Difference(Rot_giant,Sol_Starevol,parametre="14N_coeur")
+    Difference(Rot_giant,Sol_Starevol,parametre="16O_coeur")
+    Difference(Rot_giant,Sol_Starevol,parametre="17O_coeur")"""
+
+
+    #Difference(Rot_giant,Sol_Starevol,parametre="X_coeur")
+
+
+    axes.set_xlabel("t")
+    axes.set_ylabel("Differences d'abondances [Fraction massique]")
 
     plt.legend()
     
