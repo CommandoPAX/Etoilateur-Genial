@@ -4,17 +4,11 @@
 Modèles supportés : STAREVOL, GENEC
 
 
-MAJ de ce matin :
+MAJ de cet après midi :
 
-Rajout d'une fonction Etoile.\_\_getitem\_\_ qui permet d'accéder à une variable sans passer par Etoile.args
+Rajout de commentaires
 
-Optimisation du code des fichiers de Structure pour Genec qui lisait ligne/ligne (il faudrait voir si on peut trouver un moyen de le faire pour Starevol)
-
-Conversion dans les bonnes unités des trucs qui étaient en log dans les fichiers de structure
-
-Optimisation des fonctions Etoile.Parametre et Etoile.age
-
-Structure.Convection marche de nouveau
+Rajout de la fonction différence
 
 TBA : 
 
