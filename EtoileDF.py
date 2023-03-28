@@ -460,8 +460,12 @@ class Etoile (object):
                 plt.cla()
             except : print(k)
 
-def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls = "--") : #Calcule la différence entre deux étoiles
+def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls = "--",masse=False) : #Calcule la différence entre deux étoiles
     global axes
+
+    if evol :
+        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=masse)
+        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=masse)
     
     t1 = etoile1["t"].shape
     t2 = etoile2["t"].shape
@@ -475,10 +479,6 @@ def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls
 
     for i in range(len(etoile1["t"])):
         zeros[i] = etoile1[parametre][i]-etoile2.Para(age = float(etoile1["t"][i]),parametres=parametre)[0]
-
-    if evol :
-        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=True)
-        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=True)
 
     axdiff = axes.twinx()
 
@@ -495,7 +495,11 @@ def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls
 
 def Difference_struct (etoile1,etoile2,parametre,evol = True, show=False,legendes=[], ls = "--") :
     global axes
-    
+
+    if evol :
+        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=True)
+        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=True)
+ 
     t1 = etoile1["r"].shape
     t2 = etoile2["r"].shape
 
@@ -508,10 +512,6 @@ def Difference_struct (etoile1,etoile2,parametre,evol = True, show=False,legende
 
     for i in range(len(etoile1["r"])):
         zeros[i] = etoile1[parametre][i]-etoile2.Para(r = float(etoile1["r"][i]),parametres=parametre)[0]
-
-    if evol :
-        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=True)
-        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=True)
 
     axdiff = axes.twinx()
 
@@ -535,15 +535,20 @@ if __name__ == "__main__" :
     Sol_Genec = Etoile(modele="Genec", source = "classique_m1.0.wg")
     Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
 
-    A_Genec = Etoile(modele="Genec", source ="A.wg")
-    B_Genec = Etoile(modele="Genec",source="B.wg")
+    Sol_Genec.Evolution(parametres=["X_coeur"],legende="Genec pas de rotation",masse=True)
+    Rot_Genec.Evolution(parametres=["X_coeur"],legende="Genec rotation",masse=True)
 
-    Struct_norot = Structure (modele="Starevol", source = "./Struct_starevol/")
+    Sol_Starevol.Evolution(parametres=["X_coeur"],legende="Starevol pas de rotation",ls="--",masse=True)
+    Rot_giant.Evolution(parametres=["X_coeur"],legende="Starevol rotation", ls="--",masse=True) 
+
+    """Struct_norot = Structure (modele="Starevol", source = "./Struct_starevol/")
     Struct_rot = Structure (modele = "Starevol", source = "./Structure_M1/")
 
-    Difference_struct(Struct_rot,Struct_norot,"T",legendes=["Rotation","Pas de rotation"],ls="--")
+    Difference_struct(Struct_rot,Struct_norot,"T",legendes=["Rotation","Pas de rotation"],ls="--")"""
 
-    axes.set_xlabel("r/R")
-    axes.set_ylabel("T [K]")
+    plt.legend()
+
+    axes.set_xlabel("t")
+    axes.set_ylabel("X")
     
     plt.show()
