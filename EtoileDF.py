@@ -7,11 +7,13 @@ from math import*
 import pandas as pd
 import seaborn as sns
 import sys
+import mesa_reader as mr
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
     from io import StringIO
     
+sns.set(color_codes = True)
 sns.set(font_scale=1.5) # fixe la taille de la police à 1.5 * 12pt
 sns.set_style("ticks")
 sns.color_palette("bright")
@@ -27,7 +29,7 @@ Masse : M | M/Mo
 temps/age : t | annees
 ABondances : fractions massiques """
 
-fg, axes = plt.subplots()
+fg, ax1 = plt.subplots()
 
 class Structure (object):
     def __init__ (self, modele, source):
@@ -51,6 +53,12 @@ class Structure (object):
         
         for k in range(len(self.elts_sv)) : self.dico_elts[self.elts_sv[k]] = self.elts[k]
 
+        if self.modele == "MESA" : 
+            
+            '''Import des données pour le cas du modèle MESA'''
+            
+            fichier = mr.MesaLogDir(log_path= source)
+        
         if self.modele == "Genec" :
             fichier = open(self.source,"r")
             
@@ -75,7 +83,6 @@ class Structure (object):
             Data=StringIO(Data)
             
             self.DF = pd.read_csv(Data, delimiter = " ",skiprows = [0,1]) # Crée le dataframe ou sont stocké les données dans le format standard. Attention : pas d'index
-            self.test = self.DF
             
             self.args = {}        
 
@@ -147,7 +154,7 @@ class Structure (object):
     def __getitem__ (self,x): # Permet d'accéder à un paramètre directement en tapant Etoile["parametre"]
         return self.args[x]
 
-    def Evolution (self,parametres,legende,X = "r", masse = True,xlegende="",ylegende="",show=False, ls = "", dy = 0):
+    def Evolution (self,parametres,legende,X = "r", masse = True,xlegende="",ylegende="",show=False, ls = ""):
 
         if type(parametres) == str : parametres = [parametres]
 
@@ -155,27 +162,16 @@ class Structure (object):
 
         for y in parametres :
             try :
-                if len(parametres) > 1 : lab = legende+" ; "+y
-                else : lab = legende
-                if ls == "" : plt.plot(self.args[X],self.args[y]+dy, label=lab)
-                else : plt.plot(self.args[X],self.args[y]+dy, label=legende+" ; "+y, linestyle = ls)
+                if ls == "" : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y)
+                else : plt.plot(self.args[X],self.args[y], label=legende+" ; "+y, linestyle = ls)
             except KeyError : print("Parametre inconnu : "+y)
 
         axes.set_xlabel(xlegende)
         axes.set_ylabel(ylegende)
 
-        if show : axes.show()
+        plt.legend()
 
-    def Para (self, r, parametres): # Affiche les valeurs de certains parametres à un rayon
-
-        r_opti = np.argmin(np.abs(self["r"] - r))
-
-        if type (parametres) == str : parametres = [parametres]
-
-        resultats = []
-        for k in parametres : resultats.append(self.args[k][r_opti])
-
-        return resultats
+        if show : ax1.show()
 
     def Convection (self,couleur="gray",legende="nablad = nablarad") :
 
@@ -191,6 +187,7 @@ class Structure (object):
             plt.axvline(x = self["r"][k],color=couleur,linestyle='--',label=legende)
 
         return r
+    
             
 class Etoile (object): 
     def __init__(self, modele, source):
@@ -199,8 +196,8 @@ class Etoile (object):
         # source est un fichier pour Genec, et le repertoire qui contient tous les fichiers pour Starevol (il faut les dezipper)
         # Pour accéder à l'abondance au coeur du carbone 12 (par exemple) > Etoile["12C_coeur"]
         
-        if modele not in ("Genec","Starevol") :
-            raise ValueError ("Le modele doit etre Genec ou Starevol")
+        if modele not in ("Genec","Starevol", "MESA") :
+            raise ValueError ("Le modele doit etre Genec, Starevol ou MESA")
         
         self.modele = modele
         self.source = source
@@ -218,6 +215,30 @@ class Etoile (object):
         for i in self.elts :
             self.abondances_surf [i] = []
             self.abondances_coeur[i] = []
+        
+        if self.modele == "MESA" :
+            
+            '''Import des données pour le cas du modèle MESA'''
+            
+            #ATTENTION WORK IN PROGRESS C'EST PAS FINI DU TOUT
+            
+            fichier = mr.MesaLogDir(log_path= source)
+            Hist = fichier.history
+            
+            self.DF = pd.DataFrame(Hist.bulk_data, columns = Hist.bulk_names) #Passage des données dans le Dataframe
+            self.test = self.DF
+            
+            self.T = 10**np.array(self.DF["log_Teff"])
+            self.L = 10**np.array(self.DF["log_L"])
+            self.M = np.array(self.DF["star_mass"])
+            self.t = np.array(self.DF["star_age"])
+            self.X = np.array(self.DF["center_h1"])
+            self.Y = np.array(self.DF["center_he4"])
+            self.R = 10**np.array(self.DF["log_R"]) #Unité à check j'ai eu la flemme
+            
+            #J'ai pas l'impression que MESA calcule l'h1 et he4 en surface, c'est chiant
+            self.abondances_coeur["X"] = self.X
+            self.abondances_coeur["Y"] = self.Y
         
         if self.modele == "Genec" :
 
@@ -380,8 +401,8 @@ class Etoile (object):
         if masse : legende += " ; M = "+str(self.M_ini)+" Mo"
         if Zini  : legende += " ; Z_ini ="+str(self.Z_ini)
 
-        if couleur == "" : axes.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
-        else : axes.plot(np.log10(self.T/5777),np.log10(self.L),label=legende, color=couleur)
+        if couleur == "" : ax1.plot(np.log10(self.T/5777),np.log10(self.L),label=legende)
+        else : ax1.plot(np.log10(self.T/5777),np.log10(self.L),label=legende, color=couleur)
         
         plt.legend()
 
@@ -390,9 +411,7 @@ class Etoile (object):
 
         if show : plt.show()
 
-    def Evolution (self, x = "t", parametres = [], xlegende = "xlegende", ylegende = "ylegende", ls="", legende="", logx = False, masse = False, Zini = False, show = False, dy = 0) : 
-
-        global axes
+    def Evolution (self, x = "t", parametres = [], xlegende = "xlegende", ylegende = "ylegende", ls="", legende="", logx = False, masse = False, Zini = False, show = False) : 
         
         if xlegende == "xlegende":
             xlegende = x
@@ -404,20 +423,21 @@ class Etoile (object):
         if logx : X = np.log10(X)
 
         for i in parametres : 
-            if len (parametres) > 1 :lab = legende + "; " + i
-            else : lab = legende
+            lab = legende + "; " + i
 
             if masse : lab += " ; M = "+str(self.M_ini)+" Mo"
             if Zini  : lab += " ; Z_ini ="+str(self.Z_ini)
 
             try:
-                if ls == "" : axes.plot(X,self.args[i]+dy,label=lab)
-                else : axes.plot(X,self.args[i]+dy,label=lab, linestyle=ls)
+                if ls == "" : ax1.plot(X,self.args[i],label=lab)
+                else : ax1.plot(X,self.args[i],label=lab, linestyle=ls)
             except KeyError : print("Parametre inconnu : "+i)
 
         
         plt.xlabel(xlegende) 
         plt.ylabel(ylegende)
+
+        plt.legend()
 
         if show : plt.show()
             
@@ -445,12 +465,12 @@ class Etoile (object):
         xn = (x[:-1] + x[1:]) / 2
         yn = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 
-        if plot : axes.scatter(xn, yn, label = legende,s=0.01)
+        if plot : ax1.scatter(xn, yn, label = legende,s=0.01)
 
         return [xn,yn]
 
-    def Rien (self):    # Fonction qui ne fait rien
-        pass
+    def Test (self):    # Fonction test
+        print(self.test)
     
     def Spammer_Aaron (self):       # Permet d'enregistrer plein de graphes qu'on peut envoyer aux collègues pour les spammer
         for k in self.DF.columns :
@@ -460,13 +480,7 @@ class Etoile (object):
                 plt.cla()
             except : print(k)
 
-def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls = "--",masse=False) : #Calcule la différence entre deux étoiles
-    global axes
-
-    if evol :
-        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=masse)
-        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=masse)
-    
+def Difference (etoile1,etoile2,parametre,show=False,legende="", Evol = False, couleur = "pink") : #Calcule la différence entre deux modèles
     t1 = etoile1["t"].shape
     t2 = etoile2["t"].shape
 
@@ -475,53 +489,18 @@ def Difference (etoile1,etoile2,parametre,show=False,evol = True,legendes=[], ls
         etoile2 = etoile1
         etoile1 = etoile3
 
+    if legende == "" : legende = parametre
+
     zeros = np.zeros(shape = etoile1["t"].shape)
+
+    if Evol == True : #True si pour ajouter a un autre graphe, False sinon
+        fg, axdiff = plt.subplots()
+        axdiff = ax1.twinx()
 
     for i in range(len(etoile1["t"])):
         zeros[i] = etoile1[parametre][i]-etoile2.Para(age = float(etoile1["t"][i]),parametres=parametre)[0]
 
-    axdiff = axes.twinx()
-
-    axdiff.plot(etoile1["t"],-zeros,linestyle=ls,color="red",label="Difference")
-
-    lines, labels = axes.get_legend_handles_labels()
-    lines2, labels2 = axdiff.get_legend_handles_labels()
-    
-    axdiff.legend(lines + lines2, labels + labels2, loc=0)
-
-    if show : plt.show()
-
-    return zeros
-
-def Difference_struct (etoile1,etoile2,parametre,evol = True, show=False,legendes=[], ls = "--") :
-    global axes
-
-    if evol :
-        etoile1.Evolution(parametres=[parametre],legende=legendes[0],masse=True)
-        etoile2.Evolution(parametres=[parametre],legende=legendes[1],masse=True)
- 
-    t1 = etoile1["r"].shape
-    t2 = etoile2["r"].shape
-
-    if t1 < t2 :
-        etoile3 = etoile2
-        etoile2 = etoile1
-        etoile1 = etoile3
-
-    zeros = np.zeros(shape = etoile1["r"].shape)
-
-    for i in range(len(etoile1["r"])):
-        zeros[i] = etoile1[parametre][i]-etoile2.Para(r = float(etoile1["r"][i]),parametres=parametre)[0]
-
-    axdiff = axes.twinx()
-
-    axdiff.plot(etoile1["r"],-zeros,linestyle=ls,color="red",label="Difference")
-
-    lines, labels = axes.get_legend_handles_labels()
-    lines2, labels2 = axdiff.get_legend_handles_labels()
-    
-    axdiff.legend(lines + lines2, labels + labels2, loc=0)
-
+    axdiff.plot(etoile1["t"],zeros,label=legende, color = couleur)
     if show : plt.show()
 
     return zeros
@@ -530,25 +509,5 @@ if __name__ == "__main__" :
 
     axes = plt.gca()
 
-    Rot_giant = Etoile(modele="Starevol",source="./ROTATION1_M1.0_ROTOPTI_GIANT/")
-    Rot_Genec = Etoile(modele="Genec", source = "rotation_m1.0.wg")
-    Sol_Genec = Etoile(modele="Genec", source = "classique_m1.0.wg")
-    Sol_Starevol = Etoile(modele="Starevol", source = "CLASSIQUE_M1.0/")
-
-    Sol_Genec.Evolution(parametres=["X_coeur"],legende="Genec pas de rotation",masse=True)
-    Rot_Genec.Evolution(parametres=["X_coeur"],legende="Genec rotation",masse=True)
-
-    Sol_Starevol.Evolution(parametres=["X_coeur"],legende="Starevol pas de rotation",ls="--",masse=True)
-    Rot_giant.Evolution(parametres=["X_coeur"],legende="Starevol rotation", ls="--",masse=True) 
-
-    """Struct_norot = Structure (modele="Starevol", source = "./Struct_starevol/")
-    Struct_rot = Structure (modele = "Starevol", source = "./Structure_M1/")
-
-    Difference_struct(Struct_rot,Struct_norot,"T",legendes=["Rotation","Pas de rotation"],ls="--")"""
-
-    plt.legend()
-
-    axes.set_xlabel("t")
-    axes.set_ylabel("X")
-    
-    plt.show()
+    SUN = Structure(modele= "MESA", source = "L3S6/ProjetTutore/DATA/MESA/1M")
+    print(SUN.Struct)
