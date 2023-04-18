@@ -359,7 +359,7 @@ class Etoile (object):
                                 self.abondances_coeur[e] = np.array(self.DF_coeur[e[-2:]+e[:-2]])   # Idem pour les elts de deux lettres, par exemple He
                                 self.abondances_surf[e]  = np.array(self.DF_surf[e[-2:]+e[:-2]])
                             except KeyError:
-                                pass    # Ca bugue encore pour Al26m, flemme de réfléchir
+                                pass    # Ca bugue encore pour Al26m
                 except : print(self.DF_coeur.columns)
 
         self.Z_coeur = 1- self.abondances_coeur["X"]-self.abondances_coeur["Y"]
@@ -468,17 +468,6 @@ class Etoile (object):
         if plot : ax1.scatter(xn, yn, label = legende,s=0.01)
 
         return [xn,yn]
-
-    def Test (self):    # Fonction test
-        print(self.test)
-    
-    def Spammer_Aaron (self):       # Permet d'enregistrer plein de graphes qu'on peut envoyer aux collègues pour les spammer
-        for k in self.DF.columns :
-            try:
-                self.Evolution(Varx="t",Vary=k,ylegende=k,logx=True,label="Aaron",show=False)
-                plt.savefig("./Aaron/Aaron "+k.replace("/","-")+".png")
-                plt.cla()
-            except : print(k)
 
 def Difference (etoile1,etoile2,parametre,show=False,legende="", Evol = False, couleur = "pink") : #Calcule la différence entre deux modèles
     t1 = etoile1["t"].shape
