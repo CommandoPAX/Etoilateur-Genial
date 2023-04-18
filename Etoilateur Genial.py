@@ -496,7 +496,13 @@ def Difference (etoile1,etoile2,parametre,show=False,legende="", Evol = False, c
 
 if __name__ == "__main__" :
 
+    # Trace un diagramme HR d'une étoile de masse solaire
+    
     axes = plt.gca()
 
-    SUN = Structure(modele= "MESA", source = "L3S6/ProjetTutore/DATA/MESA/1M")
-    print(SUN.Struct)
+    soleil = Etoile(modele="Starevol", source = "./CLASSIQUE_M1.0")
+    soleil.HR(legende = "Etoile 1 Starevol")
+
+    axes.legend()
+    
+    plt.show()
