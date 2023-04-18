@@ -220,7 +220,7 @@ class Etoile (object):
             
             '''Import des données pour le cas du modèle MESA'''
             
-            #ATTENTION WORK IN PROGRESS C'EST PAS FINI DU TOUT
+            #Le code pour Mesa n'est pas terminé
             
             fichier = mr.MesaLogDir(log_path= source)
             Hist = fichier.history
@@ -234,9 +234,9 @@ class Etoile (object):
             self.t = np.array(self.DF["star_age"])
             self.X = np.array(self.DF["center_h1"])
             self.Y = np.array(self.DF["center_he4"])
-            self.R = 10**np.array(self.DF["log_R"]) #Unité à check j'ai eu la flemme
+            self.R = 10**np.array(self.DF["log_R"])
             
-            #J'ai pas l'impression que MESA calcule l'h1 et he4 en surface, c'est chiant
+            #Mesa ne calcule par défaut pas beaucoup de variables
             self.abondances_coeur["X"] = self.X
             self.abondances_coeur["Y"] = self.Y
         
@@ -247,7 +247,6 @@ class Etoile (object):
             fichier = open(self.source,'r')
 
             # Rajout de la légende des colonnes
-            # Aucune idée d'à quoi servent la moitié des variables
             
             colonnes = ["nm","t","M/Mo","log(L/Lo)","log(Teff)","X_surf","Y_surf","3He_surf","12C_surf","13C_surf","14N_surf","16O_surf","17O_surf","18O_surf","20Ne_surf","22Ne_surf",
                         "Mcc","log(Teff_nc)","log(M)","log(rho_c)","log(Tc)","X_coeur","Y_coeur","3He_coeur","12C_coeur","13C_coeur","14N_coeur","16O_coeur","17O_coeur","18O_coeur","20Ne_coeur","22Ne_coeur","7Be_coeur","8Be_coeur",
